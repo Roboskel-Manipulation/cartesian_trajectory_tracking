@@ -1,7 +1,6 @@
 D: 21.27
-sleep_rate: 0.05
-init_x: 0.3065
-init_y: 0.1492
-init_z: 0.0482
-xOffset: 0.5
-yOffset: 0.5
+xOffset: 0.6
+yOffset: 0.4
+zOffset: 0
+var: true
+var_gain: 120
