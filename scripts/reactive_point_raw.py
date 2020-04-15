@@ -8,7 +8,7 @@ import numpy as np
 
 def main():
 	rospy.init_node("node")
-	pub = rospy.Publisher("raw_points", Point, queue_size=10)
+	pub = rospy.Publisher("trajectory_points", Point, queue_size=10)
 	file = open(sys.argv[1], 'r')
 	fl = file.readlines()
 	x = list()
@@ -21,6 +21,7 @@ def main():
 	y_inter = list()
 	z_inter = list()
 	count = 0
+	first_point = True
 	for i in xrange(len(fl)):
 		if "RWrist" in fl[i]:
 			count += 1
@@ -34,24 +35,28 @@ def main():
 				x.append(x_tmp)
 				y.append(y_tmp)
 				z.append(z_tmp)
+				point = Point()
+				point.x = x[-1]
+				point.y = y[-1]
+				point.z = z[-1]
+				if first_point:
+					rospy.sleep(0.5)
+					pub.publish(point)
+					rospy.loginfo("Published first point")
+					first_point = False
+					rospy.sleep(5)
+				else:
+					pub.publish(point)
+					rospy.loginfo("Published other point")
+					rospy.sleep(0.047)
 
-	fig = plt.figure()
-	ax = plt.axes()
-	ax.scatter(xRaw, yRaw, s=50)
-	ax.scatter(x_inter, y_inter, s=100, c="red")
-	ax.scatter(x, y, s=20, c="orange")
-	plt.show()
+	# fig = plt.figure()
+	# ax = plt.axes()
+	# ax.scatter(xRaw, yRaw, s=50)
+	# ax.scatter(x_inter, y_inter, s=100, c="red")
+	# ax.scatter(x, y, s=20, c="orange")
+	# plt.show()
 
-	for i in xrange(len(x)):
-		point = Point()
-		point.x = x[i]
-		point.y = y[i]
-		point.z = z[i]
-		pub.publish(point)
-		if i==0:
-			rospy.sleep(10)
-		else:
-			rospy.sleep(0.047)
 	rospy.loginfo("Published all the points")
 	rospy.spin()
 

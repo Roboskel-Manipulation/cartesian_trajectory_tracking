@@ -12,7 +12,7 @@ def main():
 	file = open(sys.argv[1], 'r')
 	ds_thres = float(sys.argv[2])
 	ip_thres = float(sys.argv[3])
-	pub_flag = False
+	pub_flag = True
 	fl = file.readlines()
 	x = list()
 	y = list()
@@ -26,6 +26,7 @@ def main():
 	count = 0
 	for i in xrange(len(fl)):
 		if "RWrist" in fl[i]:
+			# rospy.sleep(0.047)
 			count += 1
 			x_tmp = float(fl[i+9][11:])
 			y_tmp = float(fl[i+10][11:])
@@ -54,14 +55,15 @@ def main():
 				y.append(y_tmp)
 				z.append(z_tmp)
 
-	fig = plt.figure()
-	ax = plt.axes()
-	ax.scatter(xRaw, yRaw, s=50)
-	ax.scatter(x_inter, y_inter, s=100, c="red")
-	ax.scatter(x, y, s=20, c="orange")
-	ax.grid()
-	plt.show()
+	# fig = plt.figure()
+	# ax = plt.axes()
+	# ax.scatter(xRaw, yRaw, s=50)
+	# ax.scatter(x_inter, y_inter, s=100, c="red")
+	# ax.scatter(x, y, s=20, c="orange")
+	# ax.grid()
+	# plt.show()
 
+	rospy.sleep(0.5)
 	if pub_flag:
 		for i in xrange(len(x)):
 			point = Point()

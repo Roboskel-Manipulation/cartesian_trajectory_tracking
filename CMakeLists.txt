@@ -9,6 +9,7 @@ project(reactive_control)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
+  std_msgs
   keypoint_3d_matching_msgs
   roscpp
   rospy
@@ -19,7 +20,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES reactive_control
- CATKIN_DEPENDS geometry_msgs keypoint_3d_matching_msgs roscpp rospy trajectory_execution_msgs
+ CATKIN_DEPENDS std_msgs geometry_msgs keypoint_3d_matching_msgs roscpp rospy trajectory_execution_msgs
 #  DEPENDS system_lib
 )
 
