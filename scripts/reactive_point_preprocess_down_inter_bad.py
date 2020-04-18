@@ -40,8 +40,10 @@ def main():
 				dis = distance.euclidean((x_tmp, y_tmp, z_tmp),(x[-1], y[-1], z[-1]))
 			if len(x) == 0 or (len(x) >= 1 and dis >= ds_thres):
 				if len(x) >= 1 and dis > ip_thres:
-					print dis
-					for j in np.linspace(0,1,5):
+					# print dis
+					num_points = round(dis,3)//ds_thres + 1
+					print num_points
+					for j in np.linspace(0,1,num_points):
 						if j==0 or j==1:
 							continue
 						# print j
@@ -55,13 +57,23 @@ def main():
 				y.append(y_tmp)
 				z.append(z_tmp)
 
-	# fig = plt.figure()
-	# ax = plt.axes()
-	# ax.scatter(xRaw, yRaw, s=50)
-	# ax.scatter(x_inter, y_inter, s=100, c="red")
-	# ax.scatter(x, y, s=20, c="orange")
-	# ax.grid()
-	# plt.show()
+	# dis = []
+	# for i in xrange(len(x)-1):
+	# 	dis.append(distance.euclidean((x[i], y[i]), (x[i+1], y[i+1])))
+	# print "Min distance: " + str(min(dis))
+	# print "Max distance: " + str(max(dis))
+	# print dis.index(min(dis))
+	fig = plt.figure()
+	ax = plt.axes()
+	fig.suptitle("Bad interpolation")
+	ax.scatter(xRaw, yRaw, s=50)
+	ax.scatter(x_inter, y_inter, s=100, c="red")
+	ax.scatter(x, y, s=20, c="orange")
+	for i in xrange(len(x)-1):
+		# print i, distance.euclidean((x[i], y[i]), (x[i+1], y[i+1]))
+		ax.text(x[i], y[i], str(i))
+	ax.grid()
+	plt.show()
 
 	rospy.sleep(0.5)
 	if pub_flag:

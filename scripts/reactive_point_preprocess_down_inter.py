@@ -47,20 +47,20 @@ def listened_to_the_points(msg):
 		z = [z[-1]]
 
 	count += 1
-	x_tmp = msg.x
-	y_tmp = msg.y
-	z_tmp = msg.z
+	x_point = msg.x
+	y_point = msg.y
+	z_point = msg.z
 
 	if len(x) >= 1:
-		dis = distance.euclidean((x_tmp, y_tmp, z_tmp),(x[-1], y[-1], z[-1]))
+		dis = distance.euclidean((x_point, y_point, z_point),(x[-1], y[-1], z[-1]))
 	
 	if len(x) == 0 or (len(x) >= 1 and dis >= ds_thres):
 		if len(x) >= 1 and round(dis,3) >= ip_thres:
 			if len(x_temp) != 0:
 				for j in xrange(len(x_temp)-1):
-					dis_tmp = distance.euclidean((x_temp[j], y_temp[j], z_temp[j]),(x_temp[j+1], y_temp[j+1], z_temp[j+1]))
-					if round(dis_tmp,3) >= ip_thres:
-						interpolation((x_temp[j], y_temp[j], z_temp[j]),(x_temp[j+1], y_temp[j+1], z_temp[j+1]), dis_tmp)
+					dis_point = distance.euclidean((x_temp[j], y_temp[j], z_temp[j]),(x_temp[j+1], y_temp[j+1], z_temp[j+1]))
+					if round(dis_point,3) >= ip_thres:
+						interpolation((x_temp[j], y_temp[j], z_temp[j]),(x_temp[j+1], y_temp[j+1], z_temp[j+1]), dis_point)
 					else:
 						x.append(x_temp[j])
 						y.append(y_temp[j])
@@ -72,9 +72,9 @@ def listened_to_the_points(msg):
 						y_all.append(y_temp[j])
 						z_all.append(z_temp[j])
 						
-				dis_tmp = distance.euclidean((x_tmp, y_tmp, z_tmp),(x_temp[-1], y_temp[-1], z_temp[-1]))
-				if round(dis_tmp,3) >= ip_thres:
-					interpolation((x_temp[-1], y_temp[-1], z_temp[-1]), (x_tmp, y_tmp, z_tmp), dis_tmp)
+				dis_point = distance.euclidean((x_point, y_point, z_point),(x_temp[-1], y_temp[-1], z_temp[-1]))
+				if round(dis_point,3) >= ip_thres:
+					interpolation((x_temp[-1], y_temp[-1], z_temp[-1]), (x_point, y_point, z_point), dis_point)
 				else:
 					x.append(x_temp[-1])
 					y.append(y_temp[-1])
@@ -89,21 +89,21 @@ def listened_to_the_points(msg):
 				y_temp = []
 				z_temp = []
 			else:
-				interpolation([x[-1], y[-1], z[-1]], [x_tmp, y_tmp, z_tmp], dis)
+				interpolation([x[-1], y[-1], z[-1]], [x_point, y_point, z_point], dis)
 		else:
 			x_temp = []
 			y_temp = []
 			z_temp = []
-		x.append(x_tmp)
-		y.append(y_tmp)
-		z.append(z_tmp)
-		x_all.append(x_tmp)
-		y_all.append(y_tmp)
-		z_all.append(z_tmp)	
+		x.append(x_point)
+		y.append(y_point)
+		z.append(z_point)
+		x_all.append(x_point)
+		y_all.append(y_point)
+		z_all.append(z_point)	
 	else:
-		x_temp.append(x_tmp)
-		y_temp.append(y_tmp)
-		z_temp.append(z_tmp)
+		x_temp.append(x_point)
+		y_temp.append(y_point)
+		z_temp.append(z_point)
 
 	if first_point:
 		point = Point()

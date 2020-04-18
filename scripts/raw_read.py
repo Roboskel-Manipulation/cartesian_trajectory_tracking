@@ -77,5 +77,7 @@ def main():
 					rospy.loginfo("Published other point")
 
 	print "Published the points"
-
+	for i in xrange(len(x)-1):
+		if distance.euclidean([x[i], y[i], z[i]], [x[i+1], y[i+1], z[i+1]]) >= 0.024:
+			print i
 main()
