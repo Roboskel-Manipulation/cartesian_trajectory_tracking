@@ -40,7 +40,7 @@ def interpolation(p1, p2, dis):
 
 
 def listened_to_the_points(msg):
-	global count, x, y, z, ds_thres, ip_thres, x_down, y_down, z_down, x_all, y_all, z_all, x_temp, y_temp, z_temp, pub, first_point
+	global count, x, y, z, ds_thres, ip_thres, x_all, y_all, z_all, pub, first_point
 	if len(x) != 0:
 		x = [x[-1]]
 		y = [y[-1]]
@@ -55,55 +55,15 @@ def listened_to_the_points(msg):
 		dis = distance.euclidean((x_point, y_point, z_point),(x[-1], y[-1], z[-1]))
 	
 	if len(x) == 0 or (len(x) >= 1 and dis >= ds_thres):
-		if len(x) >= 1 and round(dis,3) >= ip_thres:
-			if len(x_temp) != 0:
-				for j in xrange(len(x_temp)-1):
-					dis_point = distance.euclidean((x_temp[j], y_temp[j], z_temp[j]),(x_temp[j+1], y_temp[j+1], z_temp[j+1]))
-					if round(dis_point,3) >= ip_thres:
-						interpolation((x_temp[j], y_temp[j], z_temp[j]),(x_temp[j+1], y_temp[j+1], z_temp[j+1]), dis_point)
-					else:
-						x.append(x_temp[j])
-						y.append(y_temp[j])
-						z.append(z_temp[j])
-						x_down.append(x_temp[j])
-						y_down.append(y_temp[j])
-						z_down.append(z_temp[j])
-						x_all.append(x_temp[j])
-						y_all.append(y_temp[j])
-						z_all.append(z_temp[j])
-						
-				dis_point = distance.euclidean((x_point, y_point, z_point),(x_temp[-1], y_temp[-1], z_temp[-1]))
-				if round(dis_point,3) >= ip_thres:
-					interpolation((x_temp[-1], y_temp[-1], z_temp[-1]), (x_point, y_point, z_point), dis_point)
-				else:
-					x.append(x_temp[-1])
-					y.append(y_temp[-1])
-					z.append(z_temp[-1])
-					x_down.append(x_temp[-1])
-					y_down.append(y_temp[-1])
-					z_down.append(z_temp[-1])
-					x_all.append(x_temp[-1])
-					y_all.append(y_temp[-1])
-					z_all.append(z_temp[-1])					
-				x_temp = []
-				y_temp = []
-				z_temp = []
-			else:
-				interpolation([x[-1], y[-1], z[-1]], [x_point, y_point, z_point], dis)
-		else:
-			x_temp = []
-			y_temp = []
-			z_temp = []
+		if len(x) >= 1 and dis > ip_thres:
+			interpolation((x_point, y_point, z_point),(x[-1], y[-1], z[-1]), dis)
 		x.append(x_point)
 		y.append(y_point)
 		z.append(z_point)
 		x_all.append(x_point)
 		y_all.append(y_point)
 		z_all.append(z_point)	
-	else:
-		x_temp.append(x_point)
-		y_temp.append(y_point)
-		z_temp.append(z_point)
+
 
 	if first_point:
 		point = Point()

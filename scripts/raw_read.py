@@ -36,6 +36,7 @@ def main():
 	first_point = True
 	for i in xrange(len(fl)):
 		if "RWrist" in fl[i]:
+			rospy.sleep(0.047)
 			point = Point()
 			point.x = float(fl[i+9][11:])
 			point.y = float(fl[i+10][11:])
@@ -56,13 +57,14 @@ def main():
 					times.append(time)
 				else:
 					print i
+					break
 				# if len(x) >= 1:
 				x.append(point.x)
 				y.append(point.y)
 				z.append(point.z)
+				pub.publish(point)
 				if first_point:
 					rospy.sleep(0.2)
-					pub.publish(point)
 					rospy.loginfo("Published first point")
 					rospy.loginfo("Waiting 5 secs")
 					rospy.sleep(5)
@@ -77,7 +79,7 @@ def main():
 					rospy.loginfo("Published other point")
 
 	print "Published the points"
-	for i in xrange(len(x)-1):
-		if distance.euclidean([x[i], y[i], z[i]], [x[i+1], y[i+1], z[i+1]]) >= 0.024:
-			print i
+	# for i in xrange(len(x)-1):
+	# 	if distance.euclidean([x[i], y[i], z[i]], [x[i+1], y[i+1], z[i+1]]) >= 0.024:
+	# 		print i
 main()

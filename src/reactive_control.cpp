@@ -23,9 +23,10 @@ visualization_msgs::MarkerPtr marker_robot = boost::make_shared<visualization_ms
 int count = 0;
 float D, xOffset, yOffset, zOffset, var_gain;
 bool received_point = false;
-bool var, init_point = false;
+bool var, sim, init_point = false;
 float init_x, init_y, init_z;
 std_msgs::Float64 dis;
+std::string ee_state_topic, ee_vel_command_topic;
 
 float euclidean_distance (std::shared_ptr<std::vector<float>> v1, std::shared_ptr<std::vector<float>> v2){
 	float temp = 0;
@@ -147,7 +148,8 @@ int main(int argc, char** argv){
 	n.param("reactive_control_node/zOffset", zOffset, 0.0f);
 	n.param("reactive_control_node/var", var, false);
 	n.param("reactive_control_node/var_gain", var_gain, 10.0f);
-
+	n.param("reactive_control_node/sim", sim, true);
+	
 	marker_human->type = visualization_msgs::Marker::LINE_STRIP;
 	marker_human->action = visualization_msgs::Marker::ADD;
 	marker_human->scale.x = 0.01;
@@ -158,14 +160,24 @@ int main(int argc, char** argv){
     marker_human->color.b = 0.0f;
     marker_human->color.a = 1.0;
   	marker_human->lifetime = ros::Duration(100);
+  	std::cout << sim << std::endl;
+  	if (sim){
+  		ee_state_topic = "/manos_cartesian_velocity_controller_sim/ee_state";
+  		ee_vel_command_topic = "/manos_cartesian_velocity_controller_sim/command_cart_vel";	
+  	}
+  	else{
+  		ee_state_topic = "/manos_cartesian_velocity_controller/ee_state";
+  		ee_vel_command_topic = "/manos_cartesian_velocity_controller/command_cart_vel";  		
+  	}
 
-	pub = n.advertise<geometry_msgs::Twist>("/manos_cartesian_velocity_controller_sim/command_cart_vel", 100);
+	pub = n.advertise<geometry_msgs::Twist>(ee_vel_command_topic, 100);
 	state_pub = n.advertise<trajectory_execution_msgs::PoseTwist>("/ee_position", 100);
 	dis_pub = n.advertise<std_msgs::Float64>("/response_topic", 100);
 	vis_human_pub = n.advertise<visualization_msgs::Marker>("/vis_human_topic", 100);
 	vis_robot_pub = n.advertise<visualization_msgs::Marker>("/vis_robot_topic", 100);
 	
-	ros::Subscriber sub = n.subscribe("/manos_cartesian_velocity_controller_sim/ee_state", 100, state_callback);
+	ros::Subscriber sub = n.subscribe(ee_state_topic, 100, state_callback);
 	ros::Subscriber sub2 = n.subscribe("/trajectory_points", 100, human_motion_callback);
+	
 	ros::waitForShutdown();
 }
