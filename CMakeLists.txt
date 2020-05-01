@@ -8,25 +8,29 @@ project(reactive_control)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-  geometry_msgs
-  std_msgs
-  keypoint_3d_matching_msgs
-  roscpp
-  rospy
-  trajectory_execution_msgs
+	roscpp
+	rospy
+	std_msgs
+	geometry_msgs
+	visualization_msgs
+	keypoint_3d_matching_msgs
+	trajectory_execution_msgs
+	trajectory_process_utils_srvs
 )
 
 
 catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES reactive_control
- CATKIN_DEPENDS std_msgs geometry_msgs keypoint_3d_matching_msgs roscpp rospy trajectory_execution_msgs
-#  DEPENDS system_lib
+	INCLUDE_DIRS 
+		${THIS_PACKAGE_INCLUDE_DIRS}
+ 		include
+# 	LIBRARIES reactive_control
+ 	CATKIN_DEPENDS trajectory_execution_msgs keypoint_3d_matching_msgs visualization_msgs geometry_msgs
+# 	DEPENDS system_lib
 )
 
 include_directories(
-# include
-  ${catkin_INCLUDE_DIRS}
+	include
+	${catkin_INCLUDE_DIRS}
 )
 
 

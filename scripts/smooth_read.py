@@ -36,6 +36,7 @@ def main():
 	first_point = True
 	for i in xrange(len(fl)):
 		if "x" in fl[i]:
+			rospy.sleep(0.047)
 			point = Point()
 			point.x = float(fl[i][7:])
 			point.y = float(fl[i+1][7:])
@@ -51,7 +52,6 @@ def main():
 				rospy.sleep(5)
 				first_point = False
 			else:
-				rospy.sleep(0.047)
 				pub.publish(point)
 				point.x += 0.6
 				point.y += 0.4
@@ -60,7 +60,5 @@ def main():
 				rospy.loginfo("Published other point")
 
 	print "Published the points"
-	for i in xrange(len(x)-1):
-		if distance.euclidean([x[i], y[i], z[i]], [x[i+1], y[i+1], z[i+1]]) >= 0.024:
-			print i
+
 main()

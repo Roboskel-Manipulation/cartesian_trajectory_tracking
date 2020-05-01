@@ -51,14 +51,6 @@ def main():
 				z.append(point.z)
 				continue
 			if len(x) >= 1 and (abs(x[-1] - point.x) < 0.1 and abs(y[-1] - point.y) < 0.1 and abs(z[-1] - point.z) < 0.1):
-				if time == 0:
-					continue
-				if len(times) == 0 or (len(times) >= 1 and times[-1] <= time):
-					times.append(time)
-				else:
-					print i
-					break
-				# if len(x) >= 1:
 				x.append(point.x)
 				y.append(point.y)
 				z.append(point.z)
@@ -70,7 +62,6 @@ def main():
 					rospy.sleep(5)
 					first_point = False
 				else:
-					rospy.sleep(0.047)
 					pub.publish(point)
 					point.x += 0.6
 					point.y += 0.4
@@ -79,7 +70,5 @@ def main():
 					rospy.loginfo("Published other point")
 
 	print "Published the points"
-	# for i in xrange(len(x)-1):
-	# 	if distance.euclidean([x[i], y[i], z[i]], [x[i+1], y[i+1], z[i+1]]) >= 0.024:
-	# 		print i
+
 main()

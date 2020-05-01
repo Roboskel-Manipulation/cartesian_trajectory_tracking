@@ -5,39 +5,8 @@ import sys
 import matplotlib.pyplot as plt
 from scipy.spatial import distance
 import numpy as np
-from mpl_toolkits.mplot3d import *
-
-x = []
-y = []
-z = []
-x_inter = []
-y_inter = []
-z_inter = []
-x_all = []
-y_all = []
-z_all = []
-ds_thres = None
-
-def interpolation(p1, p2, dis):
-	global x, y, z, x_inter, y_inter, z_inter, ds_thres, x_all, y_all, z_all
-	num_inter_points = dis//ds_thres
-	print dis, num_inter_points
-	for i in np.linspace(0,1,num_inter_points + 1):
-		if i==0 or i==1:
-			continue
-		x_inter.append((1-i)*p1[0] + i*p2[0])
-		y_inter.append((1-i)*p1[1] + i*p2[1])
-		z_inter.append((1-i)*p1[2] + i*p2[2])
-		x.append((1-i)*p1[0] + i*p2[0])
-		y.append((1-i)*p1[1] + i*p2[1])
-		z.append((1-i)*p1[2] + i*p2[2])
-		x_all.append((1-i)*p1[0] + i*p2[0])
-		y_all.append((1-i)*p1[1] + i*p2[1])
-		z_all.append((1-i)*p1[2] + i*p2[2])
-
 
 def main():
-	global x, y, z, x_inter, y_inter, z_inter, ds_thres, x_all, y_all, z_all
 	rospy.init_node("node")
 	pub = rospy.Publisher("raw_points", Point, queue_size=10)
 	file = open(sys.argv[1], 'r')
@@ -47,12 +16,21 @@ def main():
 	title_num = int(sys.argv[-1])
 	title_day = sys.argv[-2]
 	title = sys.argv[1][title_num:-5] + "_" + sys.argv[-2]
-	xRaw, yRaw, zRaw = [], [], []
+	x = list()
+	y = list()
+	z = list()
+	xRaw = list()
+	yRaw = list()
+	zRaw = list()
+	x_inter = list()
+	y_inter = list()
+	z_inter = list()
 	count = 0
 	count_down = 0
 	down_list = []
 	for i in xrange(len(fl)):
 		if "RWrist" in fl[i]:
+			# rospy.sleep(0.047)
 			count += 1
 			x_tmp = float(fl[i+9][11:])
 			y_tmp = float(fl[i+10][11:])
@@ -68,7 +46,19 @@ def main():
 				down_list.append(count_down)
 				count_down = 0
 				if len(x) >= 1 and dis > ip_thres:
-					interpolation([x[-1], y[-1], z[-1]], [x_tmp, y_tmp, z_tmp], dis)
+					# print dis
+					num_points = round(dis,3)//ds_thres + 1
+					print num_points
+					for j in np.linspace(0,1,num_points):
+						if j==0 or j==1:
+							continue
+						# print j
+						x_inter.append((1-j)*x[-1] + j*x_tmp)
+						y_inter.append((1-j)*y[-1] + j*y_tmp)
+						z_inter.append((1-j)*z[-1] + j*z_tmp)
+						x.append((1-j)*x[-1] + j*x_tmp)
+						y.append((1-j)*y[-1] + j*y_tmp)
+						z.append((1-j)*z[-1] + j*z_tmp)
 				x.append(x_tmp)
 				y.append(y_tmp)
 				z.append(z_tmp)
@@ -76,44 +66,11 @@ def main():
 				count_down += 1
 	down_list.append(count_down)
 
-	fig = plt.figure()
-	ax = plt.axes(projection="3d")
-	ax.scatter(xRaw, yRaw, zRaw, s=50)
-	ax.scatter(x, y, z, s=20, c="orange")
-	dis = []
-	for i in xrange(len(x)-1):
-		dis_tmp = distance.euclidean((x[i], y[i], z[i]), (x[i+1], y[i+1], z[i+1]))
-		dis.append(dis_tmp)
-		
-	for i in xrange(len(dis)):
-		if dis[i] == max(dis):
-			ax.text(x[i], y[i], z[i], str(1))
-	ax.set_zlim(0.03, 0.06)
-	# print max(dis)
-
 	fig, ax = plt.subplots(1,2)
 	fig.set_size_inches(20,10)
 	ax[0].set_title("Raw, processed and downsampled points for " + str(title) + "\nDownsampling Threshold: " + str(ds_thres) + "m, Interpolation Threshold: " + str(ip_thres) + "m")
 	# fig.suptitle("Smart interpolation")
 	ax[0].scatter(xRaw, yRaw, s=100, label="Raw points")
-
-	dis = []
-	for i in xrange(len(x)-1):
-		dis_tmp = distance.euclidean((x[i], y[i], z[i]), (x[i+1], y[i+1], z[i+1]))
-		dis.append(dis_tmp)
-		# if dis_tmp >= 0.024:
-		# 	ax[0].text(x[i], y[i], str(1))
-
-	# for i in xrange(len(dis)):
-	# 	if dis[i] == max(dis):
-	# 		print x[i], y[i], z[i]
-	# 		print x[i+1], y[i+1], z[i+1]
-	# 		ax[0].text(x[i], y[i], str(1))
-	# 		ax[0].text(x[i+1], y[i+1], str(1))
-	for i in xrange(len(x)-1):
-		if dis[i] < 0.012:
-			print dis[i]
-			ax[0].text(x[i], y[i], str(i))
 	# ax.scatter(x_inter, y_inter, s=100, c="red", label="Interpolated points")
 	# ax[0].scatter(x_temp_all, y_temp_all, s=50, c="red", label="Downsampled points")
 	# ax.scatter(x_down, y_down, c="magenta", s=50, label="Points included due to interpolation needs")
@@ -134,15 +91,16 @@ def main():
 	ax[1].set_xlabel("Number of downsampled points per two consecutive points")
 	ax[1].set_ylabel("Frequency")
 	ax[1].grid()
-
-	# file = open("./distances.txt", 'a')
-	# # plt.savefig("/home/thanasis/Desktop/reactive_yaml_files/figs/" + title)
+	# plt.savefig("/home/thanasis/Desktop/reactive_yaml_files/figs/" + title)
+	fig = plt.figure()
+	ax = plt.axes()
+	ax.bar(langs, freq)
+	plt.xticks(list(set(down_list)))
+	plt.yticks(list(set(freq)))
+	ax.set_xlabel("Number of downsampled points per two consecutive points")
+	ax.set_ylabel("Frequency")
+	ax.grid()
 	
-	# file.write(title + " %f, %f\n"%(min(dis), max(dis)))
-	# file.close()
-	
-
-	# print min(dis), max()	
 
 	plt.show()
 
