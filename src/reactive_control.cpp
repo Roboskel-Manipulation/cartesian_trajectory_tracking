@@ -18,14 +18,20 @@ void human_motion_callback(const geometry_msgs::PointConstPtr human_msg){
 		init_z = human_msg->z + zOffset;
 	}
 	else{
+		timenow = ros::Time::now();
+		desired_robot_position->header.stamp = timenow;
+		robot_state->header.stamp = timenow;
+		control_points_pub.publish(*desired_robot_position);
+		state_pub.publish(*robot_state);
 		init_point = true;
 		dis.data = sqrt(pow(desired_robot_position->point.x - robot_state->point.x, 2) 
-			+ pow(desired_robot_position->point.y - robot_state->point.y, 2)
-			 + pow(desired_robot_position->point.z - robot_state->point.z, 2));
+			+ pow(desired_robot_position->point.y - robot_state->point.y, 2));
 		dis_pub.publish(dis);
+		marker_robot->points.push_back(robot_state->point);
+	  	vis_robot_pub.publish(*marker_robot);
 	}
+
 	count += 1;
-	std::cout << count << std::endl;
 	// desired_robot_position->point.x = human_msg->keypoints[i].points.point.x + 0.6;
 	// desired_robot_position->point.y = human_msg->keypoints[i].points.point.y + 0.5;
 	// desired_robot_position->point.z = human_msg->keypoints[i].points.point.z;
@@ -34,7 +40,6 @@ void human_motion_callback(const geometry_msgs::PointConstPtr human_msg){
 	desired_robot_position->point.y = human_msg->y + yOffset;
 	desired_robot_position->point.z = human_msg->z + zOffset;
 	desired_robot_position->header.stamp = ros::Time::now();
-	marker_human->header.frame_id = "base_link";
 	marker_human->header.stamp = ros::Time::now();
 	
 	// marker_human->ns = "human";
@@ -59,6 +64,7 @@ void state_callback (const trajectory_execution_msgs::PoseTwist::ConstPtr state_
 	robot_state->point.x = state_msg->pose.position.x;
 	robot_state->point.y = state_msg->pose.position.y;
 	robot_state->point.z = state_msg->pose.position.z;
+	robot_state->header.stamp = ros::Time::now();
 
 	if (received_point){
 		if (count == 1){
@@ -85,24 +91,6 @@ void state_callback (const trajectory_execution_msgs::PoseTwist::ConstPtr state_
 		 and not init_point){
 		 	ROS_INFO("Reached the first point");
 		}
-		if (init_point){
-			marker_robot->header.frame_id = "base_link";
-			marker_robot->header.stamp = ros::Time::now();
-			marker_robot->type = visualization_msgs::Marker::LINE_STRIP;
-			marker_robot->action = visualization_msgs::Marker::ADD;
-			marker_robot->points.push_back(robot_state->point);
-			marker_robot->scale.x = 0.01;
-		    marker_robot->scale.y = 0.01;
-		    marker_robot->scale.z = 0.01;
-		    marker_robot->color.r = 0.0f;
-		    marker_robot->color.g = 0.0f;
-		    marker_robot->color.b = 1.0f;
-		    marker_robot->color.a = 1.0;
-		  	marker_robot->lifetime = ros::Duration(100);
-		  	vis_robot_pub.publish(*marker_robot);
-		  	
-			state_pub.publish(*state_msg);
-		} 
 	}
 }
 
@@ -123,6 +111,7 @@ int main(int argc, char** argv){
 	n.param("reactive_control_node/var_gain", var_gain, 10.0f);
 	n.param("reactive_control_node/sim", sim, true);
 	
+	marker_human->header.frame_id = "base_link";
 	marker_human->type = visualization_msgs::Marker::LINE_STRIP;
 	marker_human->action = visualization_msgs::Marker::ADD;
 	marker_human->scale.x = 0.01;
@@ -133,7 +122,20 @@ int main(int argc, char** argv){
     marker_human->color.b = 0.0f;
     marker_human->color.a = 1.0;
   	marker_human->lifetime = ros::Duration(100);
-  	std::cout << sim << std::endl;
+	
+	marker_robot->header.frame_id = "base_link";
+	marker_robot->header.stamp = ros::Time::now();
+	marker_robot->type = visualization_msgs::Marker::LINE_STRIP;
+	marker_robot->action = visualization_msgs::Marker::ADD;
+	marker_robot->scale.x = 0.01;
+    marker_robot->scale.y = 0.01;
+    marker_robot->scale.z = 0.01;
+    marker_robot->color.r = 0.0f;
+    marker_robot->color.g = 0.0f;
+    marker_robot->color.b = 1.0f;
+    marker_robot->color.a = 1.0;
+  	marker_robot->lifetime = ros::Duration(100);
+  	
   	if (sim){
   		ee_state_topic = "/manos_cartesian_velocity_controller_sim/ee_state";
   		ee_vel_command_topic = "/manos_cartesian_velocity_controller_sim/command_cart_vel";	
@@ -144,11 +146,11 @@ int main(int argc, char** argv){
   	}
 
 	pub = n.advertise<geometry_msgs::Twist>(ee_vel_command_topic, 100);
-	state_pub = n.advertise<trajectory_execution_msgs::PoseTwist>("/ee_position", 100);
+	state_pub = n.advertise<geometry_msgs::PointStamped>("/ee_position", 100);
 	dis_pub = n.advertise<std_msgs::Float64>("/response_topic", 100);
 	vis_human_pub = n.advertise<visualization_msgs::Marker>("/vis_human_topic", 100);
 	vis_robot_pub = n.advertise<visualization_msgs::Marker>("/vis_robot_topic", 100);
-	
+	control_points_pub = n.advertise<geometry_msgs::PointStamped>("trajectory_points_stamp", 100);	
 	ros::Subscriber sub = n.subscribe(ee_state_topic, 100, state_callback);
 	ros::Subscriber sub2 = n.subscribe("/trajectory_points", 100, human_motion_callback);
 	

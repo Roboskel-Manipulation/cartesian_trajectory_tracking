@@ -8,7 +8,7 @@
 #include <memory>
 #include <math.h>
 
-ros::Publisher pub, state_pub, vis_human_pub, vis_robot_pub, dis_pub;
+ros::Publisher pub, state_pub, vis_human_pub, vis_robot_pub, dis_pub, control_points_pub;
 
 // std::shared_ptr<trajectory_execution_msgs::PoseTwist> robot_state = boost::make_shared<trajectory_execution_msgs::PoseTwist>();
 geometry_msgs::PointStampedPtr desired_robot_position = boost::make_shared<geometry_msgs::PointStamped>();
@@ -19,6 +19,7 @@ std::shared_ptr<std::vector<float>> v1 = std::make_shared<std::vector<float>>();
 std::shared_ptr<std::vector<float>> v2 = std::make_shared<std::vector<float>>();
 visualization_msgs::MarkerPtr marker_human = boost::make_shared<visualization_msgs::Marker>();
 visualization_msgs::MarkerPtr marker_robot = boost::make_shared<visualization_msgs::Marker>();
+ros::Time timenow;
 
 int count = 0;
 float D, xOffset, yOffset, zOffset, var_gain;

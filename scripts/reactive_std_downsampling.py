@@ -7,7 +7,7 @@ import numpy as np
 x, y, z = [], [], []
 xRaw, yRaw, zRaw = [], [], []
 xV_tmp, yV_tmp, zV_tmp = [], [], []
-pub = None
+pub, pub_stamp = None, None
 ds_thres = 0.012
 ip_thres = 0.024
 start_flag = False
@@ -43,7 +43,6 @@ def callback(data):
 		point.x = x_tmp
 		point.y = y_tmp
 		point.z = z_tmp
-		rospy.sleep(0.5)
 		pub.publish(point)
 		init_point = False
 	if not end_flag:
