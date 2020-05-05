@@ -82,7 +82,7 @@ def callback(data):
 									xFinal.extend(x)
 									yFinal.extend(y)
 									zFinal.extend(z)
-									for i in xrange(len(x)):
+									for i in xrange(1, len(x)):
 										point = Point()
 										point.x = x[i]
 										point.y = y[i]

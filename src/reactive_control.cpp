@@ -25,7 +25,7 @@ void human_motion_callback(const geometry_msgs::PointConstPtr human_msg){
 		dis_pub.publish(dis);
 	}
 	count += 1;
-
+	std::cout << count << std::endl;
 	// desired_robot_position->point.x = human_msg->keypoints[i].points.point.x + 0.6;
 	// desired_robot_position->point.y = human_msg->keypoints[i].points.point.y + 0.5;
 	// desired_robot_position->point.z = human_msg->keypoints[i].points.point.z;
