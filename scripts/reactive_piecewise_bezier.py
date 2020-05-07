@@ -86,7 +86,10 @@ def callback(data):
 										point = Point()
 										point.x = x[i]
 										point.y = y[i]
-										point.z = z[i]
+										if i == 1:
+											point.z = z[i] + 10
+										else:
+											point.z = z[i]
 										pub.publish(point)
 										rospy.sleep(0.0005)
 									x = [x[-1]]

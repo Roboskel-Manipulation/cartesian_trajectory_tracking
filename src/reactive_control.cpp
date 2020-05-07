@@ -22,13 +22,15 @@ void human_motion_callback(const geometry_msgs::PointConstPtr human_msg){
 		desired_robot_position->header.stamp = timenow;
 		robot_state->header.stamp = timenow;
 		control_points_pub.publish(*desired_robot_position);
-		state_pub.publish(*robot_state);
-		init_point = true;
-		dis.data = sqrt(pow(desired_robot_position->point.x - robot_state->point.x, 2) 
-			+ pow(desired_robot_position->point.y - robot_state->point.y, 2));
-		dis_pub.publish(dis);
-		marker_robot->points.push_back(robot_state->point);
+		state_pub_low_f.publish(*robot_state);
 	  	vis_robot_pub.publish(*marker_robot);
+		if (temp_z > 10){
+			dis.data = sqrt(pow(desired_robot_position->point.x - robot_state->point.x, 2) 
+				+ pow(desired_robot_position->point.y - robot_state->point.y, 2));
+			dis_pub.publish(dis);
+		}
+		marker_robot->points.push_back(robot_state->point);
+		init_point = true;
 	}
 
 	count += 1;
@@ -38,7 +40,13 @@ void human_motion_callback(const geometry_msgs::PointConstPtr human_msg){
 	// desired_robot_position->header.stamp = human_msg->keypoints[i].points.header.stamp;
 	desired_robot_position->point.x = human_msg->x + xOffset;
 	desired_robot_position->point.y = human_msg->y + yOffset;
-	desired_robot_position->point.z = human_msg->z + zOffset;
+	temp_z = human_msg->z;
+	if (temp_z > 10){
+		desired_robot_position->point.z = human_msg->z - 10 + zOffset;
+	}
+	else{
+		desired_robot_position->point.z = human_msg->z + zOffset;		
+	}
 	desired_robot_position->header.stamp = ros::Time::now();
 	marker_human->header.stamp = ros::Time::now();
 	
@@ -90,6 +98,10 @@ void state_callback (const trajectory_execution_msgs::PoseTwist::ConstPtr state_
 		 and abs(robot_state->point.z - init_z) < 0.005
 		 and not init_point){
 		 	ROS_INFO("Reached the first point");
+		}
+		if (init_point){
+			std::cout << *state_msg << std::endl;
+			state_pub_high_f.publish(*state_msg);
 		}
 	}
 }
@@ -146,7 +158,8 @@ int main(int argc, char** argv){
   	}
 
 	pub = n.advertise<geometry_msgs::Twist>(ee_vel_command_topic, 100);
-	state_pub = n.advertise<geometry_msgs::PointStamped>("/ee_position", 100);
+	state_pub_high_f = n.advertise<trajectory_execution_msgs::PoseTwist>("/ee_position_high_f", 100);
+	state_pub_low_f = n.advertise<geometry_msgs::PointStamped>("/ee_position_low_f", 100);
 	dis_pub = n.advertise<std_msgs::Float64>("/response_topic", 100);
 	vis_human_pub = n.advertise<visualization_msgs::Marker>("/vis_human_topic", 100);
 	vis_robot_pub = n.advertise<visualization_msgs::Marker>("/vis_robot_topic", 100);

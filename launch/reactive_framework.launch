@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <launch>
 
-	<arg name="trajectory_file" default="cloudy_day/raw_yaml/md_arrow_n.yaml"/>
+	<arg name="trajectory_file" default="/home/thanasis/Desktop/yaml_files/fast_gpu/cloudy_day/raw_yaml/md_arrow_n.yaml"/>
 	<arg name="case_piecewise" default="false"/>
 	<arg name="case_bezier" default="false"/>
 	<arg name="case_downsampling" default="false"/>	

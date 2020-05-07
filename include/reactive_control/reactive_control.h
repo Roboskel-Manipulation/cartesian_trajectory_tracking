@@ -8,7 +8,7 @@
 #include <memory>
 #include <math.h>
 
-ros::Publisher pub, state_pub, vis_human_pub, vis_robot_pub, dis_pub, control_points_pub;
+ros::Publisher pub, state_pub_high_f, state_pub_low_f, vis_human_pub, vis_robot_pub, dis_pub, control_points_pub;
 
 // std::shared_ptr<trajectory_execution_msgs::PoseTwist> robot_state = boost::make_shared<trajectory_execution_msgs::PoseTwist>();
 geometry_msgs::PointStampedPtr desired_robot_position = boost::make_shared<geometry_msgs::PointStamped>();
@@ -25,6 +25,6 @@ int count = 0;
 float D, xOffset, yOffset, zOffset, var_gain;
 bool received_point = false;
 bool var, sim, init_point = false;
-float init_x, init_y, init_z;
+float init_x, init_y, init_z, temp_z;
 std_msgs::Float64 dis;
 std::string ee_state_topic, ee_vel_command_topic;
