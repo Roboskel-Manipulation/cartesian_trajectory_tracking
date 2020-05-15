@@ -30,3 +30,4 @@ float init_x, init_y, init_z, temp_z;
 std_msgs::Float64 dis;
 std::string ee_state_topic, ee_vel_command_topic;
 std::vector<float> D_v;
+float start_time, end_time, sum_time;

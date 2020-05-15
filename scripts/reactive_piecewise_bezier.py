@@ -18,9 +18,11 @@ start_flag = False
 end_flag = False
 start_threshold = None
 pub = None
+sum_time = 0
 
 def callback(data):
-	global count, pub, xV_tmp, yV_tmp, zV_tmp, x, y, z, xFinal, yFinal, zFinal, xRaw, yRaw, zRaw, xMov, yMov, zMov, start_threshold, start_flag, end_flag
+	global sum_time, count, pub, xV_tmp, yV_tmp, zV_tmp, x, y, z, xFinal, yFinal, zFinal, xRaw, yRaw, zRaw, xMov, yMov, zMov, start_threshold, start_flag, end_flag
+	start_time = rospy.get_time()
 	x_tmp = data.x
 	y_tmp = data.y
 	z_tmp = data.z
@@ -36,7 +38,7 @@ def callback(data):
 		point.x = x_tmp
 		point.y = y_tmp
 		point.z = z_tmp
-		rospy.sleep(0.5)
+		# rospy.sleep(0.5)
 		pub.publish(point)
 	if not end_flag:
 		if x_tmp != 0 and y_tmp != 0 and z_tmp != 0:
@@ -92,6 +94,8 @@ def callback(data):
 											point.z = z[i]
 										pub.publish(point)
 										rospy.sleep(0.0005)
+									end_time = rospy.get_time()
+									sum_time += end_time - start_time
 									x = [x[-1]]
 									y = [y[-1]]
 									z = [z[-1]]
@@ -103,6 +107,7 @@ def callback(data):
 
 							if std_x <= 0.01 and std_y <= 0.01 and std_z <= 0.01:
 								print("End movement at sample %d" %count)
+								rospy.loginfo("Time elapsed: %f" %sum_time)
 								end_flag = True
 					
 def movement_detection_node():

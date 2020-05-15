@@ -15,6 +15,7 @@ end_flag = False
 init_point = True
 start_threshold = 24
 count = 0
+sum_time = 0
 
 def interpolation(p1, p2, dis):
 	global x, y, z, ds_thres, pub
@@ -33,7 +34,8 @@ def interpolation(p1, p2, dis):
 		pub.publish(point)
 
 def callback(data):
-	global x, y, z, xRaw, yRaw, zRaw, xV_tmp, yV_tmp, zV_tmp, start_threshold, ds_thres, ip_thres, init_point, end_flag, start_flag, count
+	global sum_time, x, y, z, xRaw, yRaw, zRaw, xV_tmp, yV_tmp, zV_tmp, start_threshold, ds_thres, ip_thres, init_point, end_flag, start_flag, count
+	start_time = rospy.get_time()
 	x_tmp = data.x
 	y_tmp = data.y
 	z_tmp = data.z
@@ -89,8 +91,13 @@ def callback(data):
 									pub.publish(point)
 								else:
 									interpolation(list(zip(x, y, z))[-1], [x_tmp, y_tmp, z_tmp], dis)
+								end_time = rospy.get_time()
+								sum_time += end_time - start_time
+							else:
+								print ("ok")
 						if std_x <= 0.01 and std_y <= 0.01 and std_z <= 0.01:
 							print("End movement at sample %d" %count)
+							rospy.loginfo("Time elapsed: %f" %sum_time)
 							end_flag = True
 
 

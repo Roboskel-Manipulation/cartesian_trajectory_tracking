@@ -9,15 +9,16 @@ float euclidean_distance (std::shared_ptr<std::vector<float>> v1, std::shared_pt
 }
 
 void human_motion_callback(const geometry_msgs::PointConstPtr human_msg){
-	ROS_INFO("Received point");
 	received_point = true;
-
 	if (count == 0){
 		init_x = human_msg->x + xOffset;
 		init_y = human_msg->y + yOffset;
 		init_z = human_msg->z + zOffset;
 	}
 	else{
+		if (count == 1){
+			start_time = ros::Time::now().toSec();
+		}
 		timenow = ros::Time::now();
 		desired_robot_position->header.stamp = timenow;
 		robot_state->header.stamp = timenow;
@@ -34,10 +35,6 @@ void human_motion_callback(const geometry_msgs::PointConstPtr human_msg){
 
 	count += 1;
 	std::cout << count << std::endl;
-	// desired_robot_position->point.x = human_msg->keypoints[i].points.point.x + 0.6;
-	// desired_robot_position->point.y = human_msg->keypoints[i].points.point.y + 0.5;
-	// desired_robot_position->point.z = human_msg->keypoints[i].points.point.z;
-	// desired_robot_position->header.stamp = human_msg->keypoints[i].points.header.stamp;
 	desired_robot_position->point.x = human_msg->x + xOffset;
 	desired_robot_position->point.y = human_msg->y + yOffset;
 	temp_z = human_msg->z;
@@ -53,7 +50,6 @@ void human_motion_callback(const geometry_msgs::PointConstPtr human_msg){
 
     marker_human->points.push_back(desired_robot_position->point);
   	vis_human_pub.publish(*marker_human);
-	// std::cout << count << std::endl;	
 	if (var){
 		v1->push_back(robot_state->point.x);
 		v1->push_back(robot_state->point.y);
@@ -64,11 +60,14 @@ void human_motion_callback(const geometry_msgs::PointConstPtr human_msg){
 		D = var_gain*euclidean_distance(v1, v2);
 		v1->clear();
 		v2->clear();
-		ROS_INFO("The gain is: %f", D);
 		D_v.push_back(D);
 		if (D_v.size() > 1){
 			std::cout << std::accumulate(D_v.begin(), D_v.end(), 0.0)/D_v.size() << std::endl;
 		}
+	}
+	if (init_point){
+		end_time = ros::Time::now().toSec();
+		ROS_INFO("Time elapsed: %f", end_time-start_time);
 	}
 }
 

@@ -60,15 +60,17 @@ def main():
 					rospy.loginfo("Published first point")
 					rospy.loginfo("Waiting 5 secs")
 					rospy.sleep(5)
+					start_time = rospy.get_time()
 					first_point = False
 				else:
-					pub.publish(point)
+					# pub.publish(point)
 					point.x += 0.6
 					point.y += 0.4
 					markerRaw.points.append(point)
 					pubRaw.publish(markerRaw)
 					rospy.loginfo("Published other point")
-
+					end_time = rospy.get_time()
+	print end_time - start_time
 	print "Published the points"
 
 main()
