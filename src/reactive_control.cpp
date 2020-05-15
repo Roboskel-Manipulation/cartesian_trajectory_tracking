@@ -21,7 +21,6 @@ void human_motion_callback(const geometry_msgs::PointConstPtr human_msg){
 		timenow = ros::Time::now();
 		desired_robot_position->header.stamp = timenow;
 		robot_state->header.stamp = timenow;
-		control_points_pub.publish(*desired_robot_position);
 		state_pub_low_f.publish(*robot_state);
 	  	vis_robot_pub.publish(*marker_robot);
 		if (temp_z > 10){
@@ -34,6 +33,7 @@ void human_motion_callback(const geometry_msgs::PointConstPtr human_msg){
 	}
 
 	count += 1;
+	std::cout << count << std::endl;
 	// desired_robot_position->point.x = human_msg->keypoints[i].points.point.x + 0.6;
 	// desired_robot_position->point.y = human_msg->keypoints[i].points.point.y + 0.5;
 	// desired_robot_position->point.z = human_msg->keypoints[i].points.point.z;
@@ -48,10 +48,9 @@ void human_motion_callback(const geometry_msgs::PointConstPtr human_msg){
 		desired_robot_position->point.z = human_msg->z + zOffset;		
 	}
 	desired_robot_position->header.stamp = ros::Time::now();
+	control_points_pub.publish(*desired_robot_position);
 	marker_human->header.stamp = ros::Time::now();
-	
-	// marker_human->ns = "human";
-	// marker_human->id = 0;
+
     marker_human->points.push_back(desired_robot_position->point);
   	vis_human_pub.publish(*marker_human);
 	// std::cout << count << std::endl;	
@@ -65,6 +64,11 @@ void human_motion_callback(const geometry_msgs::PointConstPtr human_msg){
 		D = var_gain*euclidean_distance(v1, v2);
 		v1->clear();
 		v2->clear();
+		ROS_INFO("The gain is: %f", D);
+		D_v.push_back(D);
+		if (D_v.size() > 1){
+			std::cout << std::accumulate(D_v.begin(), D_v.end(), 0.0)/D_v.size() << std::endl;
+		}
 	}
 }
 
@@ -100,7 +104,6 @@ void state_callback (const trajectory_execution_msgs::PoseTwist::ConstPtr state_
 		 	ROS_INFO("Reached the first point");
 		}
 		if (init_point){
-			std::cout << *state_msg << std::endl;
 			state_pub_high_f.publish(*state_msg);
 		}
 	}

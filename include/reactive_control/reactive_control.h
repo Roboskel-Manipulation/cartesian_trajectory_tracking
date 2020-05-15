@@ -5,6 +5,7 @@
 #include <geometry_msgs/PointStamped.h>
 #include <visualization_msgs/Marker.h>
 #include <std_msgs/Float64.h>
+#include <numeric>
 #include <memory>
 #include <math.h>
 
@@ -28,3 +29,4 @@ bool var, sim, init_point = false;
 float init_x, init_y, init_z, temp_z;
 std_msgs::Float64 dis;
 std::string ee_state_topic, ee_vel_command_topic;
+std::vector<float> D_v;

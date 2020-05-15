@@ -4,6 +4,7 @@ import rospy
 from geometry_msgs.msg import Point
 from visualization_msgs.msg import Marker
 from scipy.spatial import distance
+import numpy as np
 
 def main():
 	rospy.init_node("points_extraction_from_yaml")
@@ -34,30 +35,37 @@ def main():
 	markerRaw.color.b = 0.0
 	markerRaw.lifetime = rospy.Duration(100)
 	first_point = True
+
+	dis = []
 	for i in xrange(len(fl)):
 		if "x" in fl[i]:
-			rospy.sleep(0.047)
-			point = Point()
-			point.x = float(fl[i][7:])
-			point.y = float(fl[i+1][7:])
-			point.z = float(fl[i+2][7:])
-			x.append(point.x)
-			y.append(point.y)
-			z.append(point.z)
-			if first_point:
-				rospy.sleep(0.5)
-				pub.publish(point)
-				rospy.loginfo("Published first point")
-				rospy.loginfo("Waiting 5 secs")
-				rospy.sleep(5)
-				first_point = False
-			else:
-				pub.publish(point)
-				point.x += 0.6
-				point.y += 0.4
-				markerRaw.points.append(point)
-				pubRaw.publish(markerRaw)
-				rospy.loginfo("Published other point")
+			x_temp = float(fl[i][7:])
+			y_temp = float(fl[i+1][7:])
+			z_temp = float(fl[i+2][7:])
+			if len(x) == 0 or (len(x) >= 1 and distance.euclidean([x[-1], y[-1], z[-1]], [x_temp, y_temp, z_temp]) >= 0.012):
+				x.append(x_temp)
+				y.append(y_temp)
+				z.append(z_temp)
+	for i in xrange(len(x)):
+		rospy.sleep(0.047)
+		point = Point()
+		point.x = x[i]
+		point.y = y[i]
+		point.z = z[i]
+		if first_point:
+			rospy.sleep(0.5)
+			pub.publish(point)
+			rospy.loginfo("Published first point")
+			rospy.loginfo("Waiting 5 secs")
+			rospy.sleep(5)
+			first_point = False
+		else:
+			pub.publish(point)
+			point.x += 0.6
+			point.y += 0.4
+			markerRaw.points.append(point)
+			pubRaw.publish(markerRaw)
+			rospy.loginfo("Published other point")
 
 	print "Published the points"
 
