@@ -24,6 +24,7 @@ void human_motion_callback(const geometry_msgs::PointConstPtr human_msg){
 		robot_state->header.stamp = timenow;
 		state_pub_low_f.publish(*robot_state);
 	  	vis_robot_pub.publish(*marker_robot);
+	  	ROS_INFO("Num of low freq robot state: %d", count);
 		if (temp_z > 10){
 			dis.data = sqrt(pow(desired_robot_position->point.x - robot_state->point.x, 2) 
 				+ pow(desired_robot_position->point.y - robot_state->point.y, 2));
@@ -34,7 +35,7 @@ void human_motion_callback(const geometry_msgs::PointConstPtr human_msg){
 	}
 
 	count += 1;
-	std::cout << count << std::endl;
+	// std::cout << count << std::endl;
 	desired_robot_position->point.x = human_msg->x + xOffset;
 	desired_robot_position->point.y = human_msg->y + yOffset;
 	temp_z = human_msg->z;
@@ -67,7 +68,7 @@ void human_motion_callback(const geometry_msgs::PointConstPtr human_msg){
 	}
 	if (init_point){
 		end_time = ros::Time::now().toSec();
-		ROS_INFO("Time elapsed: %f", end_time-start_time);
+		// ROS_INFO("Time elapsed: %f", end_time-start_time);
 	}
 }
 

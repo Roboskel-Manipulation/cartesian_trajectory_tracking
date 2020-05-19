@@ -40,6 +40,7 @@ def callback(data):
 		point.z = z_tmp
 		# rospy.sleep(0.5)
 		pub.publish(point)
+		rospy.loginfo("Num of control points: %d"%count)
 	if not end_flag:
 		if x_tmp != 0 and y_tmp != 0 and z_tmp != 0:
 			if len(xRaw) == 0 or (len(xRaw) >= 1 and abs(xRaw[-1] - x_tmp) < 0.1 and abs(yRaw[-1] - y_tmp) < 0.1 and abs(zRaw[-1] - z_tmp) < 0.1):
@@ -84,7 +85,8 @@ def callback(data):
 									xFinal.extend(x)
 									yFinal.extend(y)
 									zFinal.extend(z)
-									for i in xrange(1, len(x)):
+									print (len(x))
+									for i in xrange(len(x)):
 										point = Point()
 										point.x = x[i]
 										point.y = y[i]
@@ -93,7 +95,7 @@ def callback(data):
 										else:
 											point.z = z[i]
 										pub.publish(point)
-										rospy.sleep(0.0005)
+										rospy.sleep(0.0000005)
 									end_time = rospy.get_time()
 									sum_time += end_time - start_time
 									x = [x[-1]]

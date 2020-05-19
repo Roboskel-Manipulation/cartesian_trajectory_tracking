@@ -47,7 +47,7 @@ def main():
 				y.append(y_temp)
 				z.append(z_temp)
 	for i in xrange(len(x)):
-		rospy.sleep(0.08)
+		rospy.sleep(0.047)
 		point = Point()
 		point.x = x[i]
 		point.y = y[i]
