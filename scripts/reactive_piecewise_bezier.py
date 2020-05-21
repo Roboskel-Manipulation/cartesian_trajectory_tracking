@@ -18,11 +18,11 @@ start_flag = False
 end_flag = False
 start_threshold = None
 pub = None
+pub_all = None
 sum_time = 0
 
 def callback(data):
-	global sum_time, count, pub, xV_tmp, yV_tmp, zV_tmp, x, y, z, xFinal, yFinal, zFinal, xRaw, yRaw, zRaw, xMov, yMov, zMov, start_threshold, start_flag, end_flag
-	start_time = rospy.get_time()
+	global sum_time, count, pub, pub_all, xV_tmp, yV_tmp, zV_tmp, x, y, z, xFinal, yFinal, zFinal, xRaw, yRaw, zRaw, xMov, yMov, zMov, start_threshold, start_flag, end_flag
 	x_tmp = data.x
 	y_tmp = data.y
 	z_tmp = data.z
@@ -81,23 +81,36 @@ def callback(data):
 									x = resp.x_smooth
 									y = resp.y_smooth
 									z = resp.z_smooth
+									x_all = resp.x_smooth_all
+									y_all = resp.y_smooth_all
+									z_all = resp.z_smooth_all
+									
 									rospy.loginfo("Smoothed the trajectory")
 									xFinal.extend(x)
 									yFinal.extend(y)
 									zFinal.extend(z)
-									print (len(x))
-									for i in xrange(len(x)):
+									pub_rate = 3*0.047/(len(x))
+									print (pub_rate)
+									for i in xrange(1, len(x)):
 										point = Point()
 										point.x = x[i]
 										point.y = y[i]
-										if i == 1:
+										if i==1:
 											point.z = z[i] + 10
 										else:
 											point.z = z[i]
 										pub.publish(point)
-										rospy.sleep(0.0000005)
+										rospy.sleep(pub_rate)
+
+									# for i in xrange(len(x_all)):
+									# 	point = Point()
+									# 	point.x = x_all[i]
+									# 	point.y = y_all[i]
+									# 	point.z = z_all[i]
+									# 	pub_all.publish(point)
+									# 	rospy.sleep(0.0005)									
+									
 									end_time = rospy.get_time()
-									sum_time += end_time - start_time
 									x = [x[-1]]
 									y = [y[-1]]
 									z = [z[-1]]
@@ -114,13 +127,15 @@ def callback(data):
 					
 def movement_detection_node():
 	rospy.init_node("movement_detection_node")
-	global pub, start_threshold
+	global pub, pub_all, start_threshold
 	rospy.loginfo("Ready to record NEW movement")
 	start_threshold = 24
 	pub = rospy.Publisher("trajectory_points", Point, queue_size=10)	
+	pub_all = rospy.Publisher("trajectory_points_all", Point, queue_size=10)	
 	sub = rospy.Subscriber("raw_points", Point, callback)
 	rospy.spin()
 
 
 if __name__ == '__main__':
 	movement_detection_node()
+

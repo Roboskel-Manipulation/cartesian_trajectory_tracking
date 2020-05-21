@@ -3,5 +3,5 @@ xOffset: 0.6
 yOffset: 0.4
 zOffset: 0
 var: false
-var_gain: 120
+var_gain: 300
 sim: true
