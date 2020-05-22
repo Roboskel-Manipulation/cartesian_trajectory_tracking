@@ -1,7 +1,7 @@
-D: 5.4
+D: 2
 xOffset: 0.6
 yOffset: 0.4
 zOffset: 0
 var: false
 var_gain: 300
-sim: true
+sim: false

@@ -23,9 +23,18 @@ sum_time = 0
 
 def callback(data):
 	global sum_time, count, pub, pub_all, xV_tmp, yV_tmp, zV_tmp, x, y, z, xFinal, yFinal, zFinal, xRaw, yRaw, zRaw, xMov, yMov, zMov, start_threshold, start_flag, end_flag
-	x_tmp = data.x
-	y_tmp = data.y
-	z_tmp = data.z
+	# rospy.loginfo("Received point")
+	# x_tmp = data.x
+	# y_tmp = data.y
+	# z_tmp = data.z
+	for i in range(len(data.keypoints)):
+		if (data.keypoints[i].name == "RWrist"):
+			x_tmp = data.keypoints[i].points.point.x
+			y_tmp = data.keypoints[i].points.point.y
+			z_tmp = data.keypoints[i].points.point.z
+			timestamp = rospy.get_time()
+			break
+
 	if end_flag:
 		if x_tmp != 0 and y_tmp != 0 and z_tmp != 0:
 			if len(xRaw) == 0 or (len(xRaw) >= 1 and abs(xRaw[-1] - x_tmp) < 0.1 and abs(yRaw[-1] - y_tmp) < 0.1 and abs(zRaw[-1] - z_tmp) < 0.1):
@@ -38,15 +47,15 @@ def callback(data):
 		point.x = x_tmp
 		point.y = y_tmp
 		point.z = z_tmp
-		# rospy.sleep(0.5)
 		pub.publish(point)
 		rospy.loginfo("Num of control points: %d"%count)
 	if not end_flag:
+		print (count)
 		if x_tmp != 0 and y_tmp != 0 and z_tmp != 0:
 			if len(xRaw) == 0 or (len(xRaw) >= 1 and abs(xRaw[-1] - x_tmp) < 0.1 and abs(yRaw[-1] - y_tmp) < 0.1 and abs(zRaw[-1] - z_tmp) < 0.1):
 				xRaw.append(x_tmp)
 				yRaw.append(y_tmp)
-				zRaw.append(z_tmp)				
+				zRaw.append(z_tmp)
 				if abs(x_tmp) < 0.6 and abs(y_tmp) < 0.6 and abs(z_tmp) < 0.6:
 					if len(xV_tmp) == start_threshold:
 						del xV_tmp[0]
@@ -61,10 +70,6 @@ def callback(data):
 						std_z = np.std(zV_tmp)
 						if (not start_flag) and (std_x > 0.01 or std_y > 0.01 or std_z > 0.01):
 							print("Start movement at sample %d" %count)
-							# for k in xrange(len(xV_tmp)-start_threshold, len(xV_tmp)-1):
-							# 	x.append(xV_tmp[k])
-							# 	y.append(yV_tmp[k])
-							# 	z.append(zV_tmp[k])					
 							start_flag = True
 						if start_flag:
 							xMov.append(x_tmp)
@@ -73,6 +78,7 @@ def callback(data):
 							x.append(x_tmp)
 							y.append(y_tmp)
 							z.append(z_tmp)
+							print (len(x))
 							if len(x) == 4:
 								try:
 									rospy.wait_for_service("trajectory_smoothing")
@@ -90,7 +96,6 @@ def callback(data):
 									yFinal.extend(y)
 									zFinal.extend(z)
 									pub_rate = 3*0.047/(len(x))
-									print (pub_rate)
 									for i in xrange(1, len(x)):
 										point = Point()
 										point.x = x[i]
@@ -119,7 +124,6 @@ def callback(data):
 									# 	break
 								except rospy.ServiceException, e:
 									rospy.logerr("Service call failed: %s"%e)	
-
 							if std_x <= 0.01 and std_y <= 0.01 and std_z <= 0.01:
 								print("End movement at sample %d" %count)
 								rospy.loginfo("Time elapsed: %f" %sum_time)
@@ -132,7 +136,8 @@ def movement_detection_node():
 	start_threshold = 24
 	pub = rospy.Publisher("trajectory_points", Point, queue_size=10)	
 	pub_all = rospy.Publisher("trajectory_points_all", Point, queue_size=10)	
-	sub = rospy.Subscriber("raw_points", Point, callback)
+	# sub = rospy.Subscriber("raw_points", Point, callback)
+	sub = rospy.Subscriber("raw_points_online", Keypoint3d_list, callback)
 	rospy.spin()
 
 
