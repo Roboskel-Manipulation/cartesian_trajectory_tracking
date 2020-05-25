@@ -5,15 +5,16 @@
 	<arg name="case_piecewise" default="false"/>
 	<arg name="case_bezier" default="false"/>
 	<arg name="case_downsampling" default="false"/>	
+	<arg name="gui" default="false"/>
+
 
 	<group if="$(arg case_piecewise)">
 		 <node name="trajectory_read" type="raw_read.py" pkg="reactive_control" args="$(arg trajectory_file)" respawn="false" output="log">
 		</node>
 		
-
 		<!-- <node name="trajectory_read" type="processed_points_read.py" pkg="reactive_control" args="$(arg trajectory_file)" respawn="false" output="log">
-		</node>
- -->		
+		</node> -->
+
 		 <node name="piecewise_bezier_constructor" type="reactive_piecewise_bezier.py" pkg="reactive_control" respawn="false" output="screen">
 		</node> 
 		
@@ -44,5 +45,6 @@
 
 	<include file="$(find manos_gazebo)/launch/manos_gazebo.launch">
 		<arg name="cart_control" value="true"/>
+		<arg name="gui" value="$(arg gui)"/>
 	</include>
 </launch>

@@ -6,7 +6,7 @@ from geometry_msgs.msg import Point
 from trajectory_process_utils_srvs.srv import *
 
 import numpy as np
-
+from scipy.spatial import distance
 
 xV_tmp, yV_tmp, zV_tmp = [], [], []
 x, y, z = [], [], []
@@ -20,20 +20,22 @@ start_threshold = None
 pub = None
 pub_all = None
 sum_time = 0
+second_point = False
+init_x, init_y, init_z = None, None, None
 
 def callback(data):
-	global sum_time, count, pub, pub_all, xV_tmp, yV_tmp, zV_tmp, x, y, z, xFinal, yFinal, zFinal, xRaw, yRaw, zRaw, xMov, yMov, zMov, start_threshold, start_flag, end_flag
+	global init_x, init_y, init_z, second_point, sum_time, count, pub, pub_all, xV_tmp, yV_tmp, zV_tmp, x, y, z, xFinal, yFinal, zFinal, xRaw, yRaw, zRaw, xMov, yMov, zMov, start_threshold, start_flag, end_flag
 	# rospy.loginfo("Received point")
-	# x_tmp = data.x
-	# y_tmp = data.y
-	# z_tmp = data.z
-	for i in range(len(data.keypoints)):
-		if (data.keypoints[i].name == "RWrist"):
-			x_tmp = data.keypoints[i].points.point.x
-			y_tmp = data.keypoints[i].points.point.y
-			z_tmp = data.keypoints[i].points.point.z
-			timestamp = rospy.get_time()
-			break
+	x_tmp = data.x
+	y_tmp = data.y
+	z_tmp = data.z
+	# for i in range(len(data.keypoints)):
+	# 	if (data.keypoints[i].name == "RWrist"):
+	# 		x_tmp = data.keypoints[i].points.point.x
+	# 		y_tmp = data.keypoints[i].points.point.y
+	# 		z_tmp = data.keypoints[i].points.point.z
+	# 		timestamp = rospy.get_time()
+	# 		break
 
 	if end_flag:
 		if x_tmp != 0 and y_tmp != 0 and z_tmp != 0:
@@ -47,8 +49,13 @@ def callback(data):
 		point.x = x_tmp
 		point.y = y_tmp
 		point.z = z_tmp
+		init_x = x_tmp
+		init_y = y_tmp
+		init_z = z_tmp
 		pub.publish(point)
 		rospy.loginfo("Num of control points: %d"%count)
+		second_point = True
+
 	if not end_flag:
 		print (count)
 		if x_tmp != 0 and y_tmp != 0 and z_tmp != 0:
@@ -104,8 +111,22 @@ def callback(data):
 											point.z = z[i] + 10
 										else:
 											point.z = z[i]
-										pub.publish(point)
-										rospy.sleep(pub_rate)
+										if second_point:
+											second_point = False
+											print (init_x, init_y, init_z)
+											dis = distance.euclidean([x[i], y[i], z[i]], [init_x, init_y, init_z])
+											num_points = dis//0.012 - 1
+											for j in np.linspace(0, 1, num_points):
+												if j != 0 and j != 1:
+													point = Point()
+													point.x = (1-j)*init_x + j*x[i]
+													point.y = (1-j)*init_y + j*y[i]
+													point.z = (1-j)*init_z + j*z[i]
+													pub.publish(point)
+													rospy.sleep(0.001)
+										else:
+											pub.publish(point)
+											rospy.sleep(pub_rate)
 
 									# for i in xrange(len(x_all)):
 									# 	point = Point()
@@ -137,7 +158,7 @@ def movement_detection_node():
 	pub = rospy.Publisher("trajectory_points", Point, queue_size=10)	
 	pub_all = rospy.Publisher("trajectory_points_all", Point, queue_size=10)	
 	# sub = rospy.Subscriber("raw_points", Point, callback)
-	sub = rospy.Subscriber("raw_points_online", Keypoint3d_list, callback)
+	sub = rospy.Subscriber("raw_points", Point, callback)
 	rospy.spin()
 
 
