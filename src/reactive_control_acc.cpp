@@ -1,5 +1,11 @@
 #include "reactive_control/reactive_control.h"
 
+geometry_msgs::TwistStampedPtr robot_velocity = boost::make_shared<geometry_msgs::TwistStamped>();
+geometry_msgs::TwistPtr desired_robot_velocity = boost::make_shared<geometry_msgs::Twist>();
+std::vector<float> acc;
+float vel_duration;
+float K=1;
+
 float euclidean_distance (std::shared_ptr<std::vector<float>> v1, std::shared_ptr<std::vector<float>> v2){
 	float temp = 0;
 	for (short int i=0; i<v1->size(); i++){
@@ -7,6 +13,7 @@ float euclidean_distance (std::shared_ptr<std::vector<float>> v1, std::shared_pt
 	}
 	return sqrt(temp);
 }
+
 
 void human_motion_callback(const geometry_msgs::PointConstPtr human_msg){
 	received_point = true;
@@ -24,7 +31,7 @@ void human_motion_callback(const geometry_msgs::PointConstPtr human_msg){
 		robot_state->header.stamp = timenow;
 		state_pub_low_f.publish(*robot_state);
 	  	vis_robot_pub.publish(*marker_robot);
-	  	// ROS_INFO("Num of low freq robot state: %d", count);
+	  	ROS_INFO("Num of low freq robot state: %d", count);
 		if (temp_z > 10){
 			dis.data = sqrt(pow(desired_robot_position->point.x - robot_state->point.x, 2) 
 				+ pow(desired_robot_position->point.y - robot_state->point.y, 2));
@@ -78,6 +85,13 @@ void state_callback (const trajectory_execution_msgs::PoseTwist::ConstPtr state_
 	robot_state->point.z = state_msg->pose.position.z;
 	robot_state->header.stamp = ros::Time::now();
 
+	vel_duration = ros::Time::now().toSec() - robot_velocity->header.stamp.toSec();
+	
+	robot_velocity->twist.linear.x = state_msg->pose.position.x;
+	robot_velocity->twist.linear.y = state_msg->pose.position.y;
+	robot_velocity->twist.linear.z = state_msg->pose.position.z;
+	robot_velocity->header.stamp = ros::Time::now();
+
 	if (received_point){
 		if (count == 1){
 			vel_control->linear.x = (desired_robot_position->point.x - robot_state->point.x);
@@ -89,19 +103,19 @@ void state_callback (const trajectory_execution_msgs::PoseTwist::ConstPtr state_
 			pub.publish(*vel_control);
 		}
 		else{
-			vel_control->linear.x = D*(desired_robot_position->point.x - robot_state->point.x);
-			vel_control->linear.y = D*(desired_robot_position->point.y - robot_state->point.y);
-			vel_control->linear.z = D*(desired_robot_position->point.z - robot_state->point.z);
-			vel_control->angular.x = 0;
-			vel_control->angular.y = 0;
-			vel_control->angular.z = 0;
+			acc[0] = K*(desired_robot_velocity->linear.x - robot_velocity->twist.linear.x) + D*(desired_robot_position->point.x - robot_state->point.x);
+			acc[1] = K*(desired_robot_velocity->linear.y - robot_velocity->twist.linear.y) + D*(desired_robot_position->point.y - robot_state->point.y);
+			acc[2] = K*(desired_robot_velocity->linear.z - robot_velocity->twist.linear.z) + D*(desired_robot_position->point.z - robot_state->point.z);
+			vel_control->linear.x = acc[0];
+			vel_control->linear.y = acc[1];
+			vel_control->linear.z = acc[2];
 			pub.publish(*vel_control);
 		}
 		if (abs(robot_state->point.x - init_x) < 0.005
 		 and abs(robot_state->point.y - init_y) < 0.005 
 		 and abs(robot_state->point.z - init_z) < 0.005
 		 and not init_point){
-		 	// ROS_INFO("Reached the first point");
+		 	ROS_INFO("Reached the first point");
 		}
 		if (init_point){
 			state_pub_high_f.publish(*state_msg);
@@ -151,6 +165,12 @@ int main(int argc, char** argv){
     marker_robot->color.a = 1.0;
   	marker_robot->lifetime = ros::Duration(100);
   	
+
+  	desired_robot_velocity->linear.x = 0;
+	desired_robot_velocity->linear.y = 0;
+  	desired_robot_velocity->linear.z = 0;
+  	acc.resize(3);
+
   	if (sim){
   		ee_state_topic = "/manos_cartesian_velocity_controller_sim/ee_state";
   		ee_vel_command_topic = "/manos_cartesian_velocity_controller_sim/command_cart_vel";	

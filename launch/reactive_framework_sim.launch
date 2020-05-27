@@ -15,7 +15,7 @@
 		<!-- <node name="trajectory_read" type="processed_points_read.py" pkg="reactive_control" args="$(arg trajectory_file)" respawn="false" output="log">
 		</node> -->
 
-		 <node name="piecewise_bezier_constructor" type="reactive_piecewise_bezier.py" pkg="reactive_control" respawn="false" output="screen">
+		 <node name="piecewise_bezier_constructor" type="reactive_piecewise_bezier.py" pkg="reactive_control" respawn="false" output="log">
 		</node> 
 		
 		
@@ -35,13 +35,17 @@
 		<!-- <node name="trajectory_read" type="processed_points_read.py" pkg="reactive_control" args="$(arg trajectory_file)" respawn="false" output="log">
 		</node> -->
 		
-		<node name="downsampling_interpolation_constructor" type="reactive_std_downsampling.py" pkg="reactive_control" respawn="false" output="screen">
+		<node name="downsampling_interpolation_constructor" type="reactive_std_downsampling.py" pkg="reactive_control" respawn="false" output="log">
 		</node>
+
 	</group>
 
 
 	<include file="$(find reactive_control)/launch/reactive_control_launch.launch">
 	</include>
+
+<!-- 	<include file="$(find reactive_control)/launch/reactive_control_acc_launch.launch">
+	</include> -->
 
 	<include file="$(find manos_gazebo)/launch/manos_gazebo.launch">
 		<arg name="cart_control" value="true"/>

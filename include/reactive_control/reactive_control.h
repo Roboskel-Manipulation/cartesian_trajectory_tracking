@@ -1,5 +1,6 @@
 #include <ros/ros.h>
 #include <geometry_msgs/Twist.h>
+#include <geometry_msgs/TwistStamped.h>
 #include <trajectory_execution_msgs/PoseTwist.h>
 #include <keypoint_3d_matching_msgs/Keypoint3d_list.h>
 #include <geometry_msgs/PointStamped.h>
