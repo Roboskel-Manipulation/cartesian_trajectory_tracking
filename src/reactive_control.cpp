@@ -1,5 +1,7 @@
 #include "reactive_control/reactive_control.h"
 
+float dis_x, dis_y, dis_z;
+
 float euclidean_distance (std::shared_ptr<std::vector<float>> v1, std::shared_ptr<std::vector<float>> v2){
 	float temp = 0;
 	for (short int i=0; i<v1->size(); i++){
@@ -18,6 +20,9 @@ void human_motion_callback(const geometry_msgs::PointConstPtr human_msg){
 	else{
 		if (count == 1){
 			start_time = ros::Time::now().toSec();
+			dis_x = human_msg->x + xOffset - init_x;
+			dis_y = human_msg->y + yOffset - init_y;
+			dis_z = human_msg->z + zOffset - init_z;
 		}
 		timenow = ros::Time::now();
 		desired_robot_position->header.stamp = timenow;
@@ -25,20 +30,18 @@ void human_motion_callback(const geometry_msgs::PointConstPtr human_msg){
 		state_pub_low_f.publish(*robot_state);
 	  	vis_robot_pub.publish(*marker_robot);
 	  	// ROS_INFO("Num of low freq robot state: %d", count);
-		if (temp_z > 10){
-			dis.data = sqrt(pow(desired_robot_position->point.x - robot_state->point.x, 2) 
-				+ pow(desired_robot_position->point.y - robot_state->point.y, 2));
-			dis_pub.publish(dis);
-		}
+		dis.data = sqrt(pow(desired_robot_position->point.x - robot_state->point.x, 2) 
+			+ pow(desired_robot_position->point.y - robot_state->point.y, 2));
+		dis_pub.publish(dis);
 		marker_robot->points.push_back(robot_state->point);
 		init_point = true;
 	}
 
 	count += 1;
 	// std::cout << count << std::endl;
-	desired_robot_position->point.x = human_msg->x + xOffset;
-	desired_robot_position->point.y = human_msg->y + yOffset;
-	temp_z = human_msg->z;
+	desired_robot_position->point.x = human_msg->x + xOffset - dis_x;
+	desired_robot_position->point.y = human_msg->y + yOffset - dis_y;
+	temp_z = human_msg->z - dis_y;
 	if (temp_z > 10){
 		desired_robot_position->point.z = human_msg->z - 10 + zOffset;
 	}
