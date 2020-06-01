@@ -22,7 +22,8 @@ num_points = 0
 def interpolation(p1, p2, dis):
 	global x, y, z, ds_thres, pub, num_points
 	num_inter_points = dis//ds_thres
-	pub_rate = num_points*0.035/(num_inter_points-1)
+	pub_rate = (num_points+1)*0.035/(num_inter_points-1)
+	print (pub_rate)
 	for i in np.linspace(0,1,num_inter_points + 1):
 		if i==0 or i==1:
 			continue

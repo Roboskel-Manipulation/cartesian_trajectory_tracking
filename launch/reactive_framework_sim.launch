@@ -35,7 +35,7 @@
 		<!-- <node name="trajectory_read" type="processed_points_read.py" pkg="reactive_control" args="$(arg trajectory_file)" respawn="false" output="log">
 		</node> -->
 		
-		<node name="downsampling_interpolation_constructor" type="reactive_std_downsampling.py" pkg="reactive_control" respawn="false" output="log">
+		<node name="downsampling_interpolation_constructor" type="reactive_std_downsampling.py" pkg="reactive_control" respawn="false" output="screen">
 		</node>
 
 	</group>

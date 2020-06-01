@@ -115,8 +115,6 @@ def callback(data):
 									# rospy.loginfo("%f"%bz_duration)
 									if len(x) > 1:
 										pub_rate = bz_duration/(len(x)-1)
-										print (pub_rate)
-										print (3*0.047/(len(x)-1))
 										pub_rate = (3*0.035)/(len(x)-1)
 									for i in xrange(1, len(x)):
 										point = Point()
