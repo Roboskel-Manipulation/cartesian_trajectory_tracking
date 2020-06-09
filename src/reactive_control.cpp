@@ -54,21 +54,10 @@ void human_motion_callback(const geometry_msgs::PointConstPtr human_msg){
 
     marker_human->points.push_back(desired_robot_position->point);
   	vis_human_pub.publish(*marker_human);
-	if (var){
-		v1->push_back(robot_state->point.x);
-		v1->push_back(robot_state->point.y);
-		v1->push_back(robot_state->point.z);
-		v2->push_back(desired_robot_position->point.x);
-		v2->push_back(desired_robot_position->point.y);
-		v2->push_back(desired_robot_position->point.z);
-		D = var_gain*euclidean_distance(v1, v2);
-		v1->clear();
-		v2->clear();
-		D_v.push_back(D);
-		if (D_v.size() > 1){
-			std::cout << std::accumulate(D_v.begin(), D_v.end(), 0.0)/D_v.size() << std::endl;
-		}
+	if (D_v.size() > 1){
+		std::cout << std::accumulate(D_v.begin(), D_v.end(), 0.0)/D_v.size() << std::endl;
 	}
+
 	if (init_point){
 		end_time = ros::Time::now().toSec();
 		// ROS_INFO("Time elapsed: %f", end_time-start_time);
@@ -92,6 +81,19 @@ void state_callback (const trajectory_execution_msgs::PoseTwist::ConstPtr state_
 			pub.publish(*vel_control);
 		}
 		else{
+			if (var){
+				v1->push_back(robot_state->point.x);
+				v1->push_back(robot_state->point.y);
+				v1->push_back(robot_state->point.z);
+				v2->push_back(desired_robot_position->point.x);
+				v2->push_back(desired_robot_position->point.y);
+				v2->push_back(desired_robot_position->point.z);
+				D = var_gain / euclidean_distance(v1, v2);
+				v1->clear();
+				v2->clear();
+				D_v.push_back(D);
+			}
+			ROS_INFO("The gain is %f", D);
 			vel_control->linear.x = D*(desired_robot_position->point.x - robot_state->point.x);
 			vel_control->linear.y = D*(desired_robot_position->point.y - robot_state->point.y);
 			vel_control->linear.z = D*(desired_robot_position->point.z - robot_state->point.z);
