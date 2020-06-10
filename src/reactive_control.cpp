@@ -92,11 +92,13 @@ void state_callback (const trajectory_execution_msgs::PoseTwist::ConstPtr state_
 				dis_points = euclidean_distance(v1, v2);
 				ROS_INFO("The distance is: %f", euclidean_distance(v1, v2));
 				if (dis_points > 0.03){
-					D = var_gain *(1 / dis_points - 1 /(dis_points-0.2));
+					D = var_gain *(1 / dis_points - 0.01 /pow((dis_points-0.2),3));
 				}
 				else{
 					D = var_gain / dis_points;
 				}
+				// D = var_gain / pow(dis_points, 4);
+
 				// if (D>10){
 				// 	D=10;
 				// }
