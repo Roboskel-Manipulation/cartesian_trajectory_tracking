@@ -1,6 +1,7 @@
 #include "reactive_control/reactive_control.h"
+#include <bits/stdc++.h>
 
-float dis_x, dis_y, dis_z;
+float dis_points, dis_x, dis_y, dis_z;
 
 float euclidean_distance (std::shared_ptr<std::vector<float>> v1, std::shared_ptr<std::vector<float>> v2){
 	float temp = 0;
@@ -88,7 +89,21 @@ void state_callback (const trajectory_execution_msgs::PoseTwist::ConstPtr state_
 				v2->push_back(desired_robot_position->point.x);
 				v2->push_back(desired_robot_position->point.y);
 				v2->push_back(desired_robot_position->point.z);
-				D = var_gain / euclidean_distance(v1, v2);
+				dis_points = euclidean_distance(v1, v2);
+				ROS_INFO("The distance is: %f", euclidean_distance(v1, v2));
+				if (dis_points > 0.03){
+					D = var_gain *(1 / dis_points - 1 /(dis_points-0.2));
+				}
+				else{
+					D = var_gain / dis_points;
+				}
+				// if (D>10){
+				// 	D=10;
+				// }
+				// if (D<6){
+				// 	D=6;
+				// }
+				// D = 7*exp(-euclidean_distance(v1, v2)/var_gain);
 				v1->clear();
 				v2->clear();
 				D_v.push_back(D);
