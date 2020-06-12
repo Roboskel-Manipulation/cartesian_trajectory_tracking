@@ -5,3 +5,5 @@ zOffset: 0
 var: true
 var_gain: 0.2
 sim: true
+Ka: 18
+Kb: 18

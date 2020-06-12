@@ -2,6 +2,7 @@
 #include <bits/stdc++.h>
 
 float dis_points, dis_x, dis_y, dis_z;
+float Ka, Kb;
 
 float euclidean_distance (std::shared_ptr<std::vector<float>> v1, std::shared_ptr<std::vector<float>> v2){
 	float temp = 0;
@@ -91,21 +92,7 @@ void state_callback (const trajectory_execution_msgs::PoseTwist::ConstPtr state_
 				v2->push_back(desired_robot_position->point.z);
 				dis_points = euclidean_distance(v1, v2);
 				ROS_INFO("The distance is: %f", euclidean_distance(v1, v2));
-				if (dis_points > 0.03){
-					D = var_gain *(1 / dis_points - 0.01 /pow((dis_points-0.2),3));
-				}
-				else{
-					D = var_gain / dis_points;
-				}
-				// D = var_gain / pow(dis_points, 4);
-
-				// if (D>10){
-				// 	D=10;
-				// }
-				// if (D<6){
-				// 	D=6;
-				// }
-				// D = 7*exp(-euclidean_distance(v1, v2)/var_gain);
+				D = Ka/(1+exp(25*(dis_points-0.12)))+Kb/(1+exp(-28*(dis_points-0.24)));
 				v1->clear();
 				v2->clear();
 				D_v.push_back(D);
@@ -147,6 +134,8 @@ int main(int argc, char** argv){
 	n.param("reactive_control_node/var", var, false);
 	n.param("reactive_control_node/var_gain", var_gain, 10.0f);
 	n.param("reactive_control_node/sim", sim, true);
+	n.param("reactive_control_node/Ka", Ka, 1.0f);	
+	n.param("reactive_control_node/Kb", Ka, 1.0f);	
 	
 	marker_human->header.frame_id = "base_link";
 	marker_human->type = visualization_msgs::Marker::LINE_STRIP;
