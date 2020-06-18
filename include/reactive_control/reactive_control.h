@@ -6,11 +6,12 @@
 #include <geometry_msgs/PointStamped.h>
 #include <visualization_msgs/Marker.h>
 #include <std_msgs/Float64.h>
+#include <std_msgs/Float64MultiArray.h>
 #include <numeric>
 #include <memory>
 #include <math.h>
 
-ros::Publisher pub, state_pub_high_f, state_pub_low_f, vis_human_pub, vis_robot_pub, dis_pub, control_points_pub;
+ros::Publisher pub, gain_pub, state_pub_high_f, state_pub_low_f, vis_human_pub, vis_robot_pub, dis_pub, control_points_pub;
 
 // std::shared_ptr<trajectory_execution_msgs::PoseTwist> robot_state = boost::make_shared<trajectory_execution_msgs::PoseTwist>();
 geometry_msgs::PointStampedPtr desired_robot_position = boost::make_shared<geometry_msgs::PointStamped>();
@@ -29,6 +30,7 @@ bool received_point = false;
 bool var, sim, init_point = false;
 float init_x, init_y, init_z, temp_z;
 std_msgs::Float64 dis;
+std_msgs::Float64 gain;
 std::string ee_state_topic, ee_vel_command_topic;
 std::vector<float> D_v;
 float start_time, end_time, sum_time;

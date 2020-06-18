@@ -4,7 +4,7 @@
 	<arg name="case_piecewise" default="false"/>
 	<arg name="case_downsampling" default="false"/>	
 	<arg name="sim" default="false"/>
-	<arg name="live_camera" default="false"/>	
+	<arg name="live_camera" default="true"/>	
 	
 	<include file="$(find openpose_utils_launch)/launch/openpose_launch.launch">
 		<arg name="sim" default="$(arg sim)"/>

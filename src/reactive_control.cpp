@@ -2,7 +2,9 @@
 #include <bits/stdc++.h>
 
 float dis_points, dis_x, dis_y, dis_z;
-float Ka, Kb;
+float Ka, Kb, min_dis, max_dis, Ka_exp, Kb_exp;
+bool exp_flag;
+std_msgs::Float64MultiArray gain_array;
 
 float euclidean_distance (std::shared_ptr<std::vector<float>> v1, std::shared_ptr<std::vector<float>> v2){
 	float temp = 0;
@@ -57,7 +59,7 @@ void human_motion_callback(const geometry_msgs::PointConstPtr human_msg){
     marker_human->points.push_back(desired_robot_position->point);
   	vis_human_pub.publish(*marker_human);
 	if (D_v.size() > 1){
-		std::cout << std::accumulate(D_v.begin(), D_v.end(), 0.0)/D_v.size() << std::endl;
+		// std::cout << std::accumulate(D_v.begin(), D_v.end(), 0.0)/D_v.size() << std::endl;
 	}
 
 	if (init_point){
@@ -92,12 +94,30 @@ void state_callback (const trajectory_execution_msgs::PoseTwist::ConstPtr state_
 				v2->push_back(desired_robot_position->point.z);
 				dis_points = euclidean_distance(v1, v2);
 				ROS_INFO("The distance is: %f", euclidean_distance(v1, v2));
-				D = Ka/(1+exp(25*(dis_points-0.12)))+Kb/(1+exp(-28*(dis_points-0.24)));
+				if (exp_flag){
+					D = Ka/(1+exp(Ka_exp*(dis_points-min_dis)))+Kb/(1+exp(-Kb_exp*(dis_points-max_dis)));
+				}
+				else{
+					D = Ka/dis_points; // + Kb/(max_dis-dis_points);
+				}
+
+				gain_array.data.push_back(dis_points);
+				gain_array.data.push_back(D);
+				gain_array.data.push_back(ros::Time::now().toSec());
+				gain_pub.publish(gain_array);
+				gain_array.data.clear();
+				// ROS_INFO("Ka: %f", Ka);
+				// ROS_INFO("Kb: %f", Kb);
+				// ROS_INFO("Ka_exp: %f", Ka_exp);
+				// ROS_INFO("Kb_exp: %f", Kb_exp);
+				// ROS_INFO("min_dis: %f", min_dis);
+				// ROS_INFO("max_dis: %f", max_dis);
+				ROS_INFO("D: %f", D);
 				v1->clear();
 				v2->clear();
 				D_v.push_back(D);
 			}
-			ROS_INFO("The gain is %f", D);
+			// ROS_INFO("The gain is %f", D);
 			vel_control->linear.x = D*(desired_robot_position->point.x - robot_state->point.x);
 			vel_control->linear.y = D*(desired_robot_position->point.y - robot_state->point.y);
 			vel_control->linear.z = D*(desired_robot_position->point.z - robot_state->point.z);
@@ -135,7 +155,12 @@ int main(int argc, char** argv){
 	n.param("reactive_control_node/var_gain", var_gain, 10.0f);
 	n.param("reactive_control_node/sim", sim, true);
 	n.param("reactive_control_node/Ka", Ka, 1.0f);	
-	n.param("reactive_control_node/Kb", Ka, 1.0f);	
+	n.param("reactive_control_node/Kb", Kb, 1.0f);	
+	n.param("reactive_control_node/Ka_exp", Ka_exp, 1.0f);	
+	n.param("reactive_control_node/Kb_exp", Kb_exp, 1.0f);	
+	n.param("reactive_control_node/min_dis", min_dis, 1.0f);	
+	n.param("reactive_control_node/max_dis", max_dis, 1.0f);	
+	n.param("reactive_control_node/exp_flag", exp_flag, true);	
 	
 	marker_human->header.frame_id = "base_link";
 	marker_human->type = visualization_msgs::Marker::LINE_STRIP;
@@ -175,6 +200,7 @@ int main(int argc, char** argv){
 	state_pub_high_f = n.advertise<trajectory_execution_msgs::PoseTwist>("/ee_position_high_f", 100);
 	state_pub_low_f = n.advertise<geometry_msgs::PointStamped>("/ee_position_low_f", 100);
 	dis_pub = n.advertise<std_msgs::Float64>("/response_topic", 100);
+	gain_pub = n.advertise<std_msgs::Float64MultiArray>("/gain_topic", 100);
 	vis_human_pub = n.advertise<visualization_msgs::Marker>("/vis_human_topic", 100);
 	vis_robot_pub = n.advertise<visualization_msgs::Marker>("/vis_robot_topic", 100);
 	control_points_pub = n.advertise<geometry_msgs::PointStamped>("trajectory_points_stamp", 100);	

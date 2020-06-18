@@ -1,9 +1,14 @@
-D: 5.4
+D: 1
 xOffset: 0.6
 yOffset: 0.4
 zOffset: 0
 var: true
 var_gain: 0.2
 sim: true
-Ka: 18
-Kb: 18
+Ka: 0.18
+Kb: 10
+min_dis: 0.0
+max_dis: 0.09
+Ka_exp: 80
+Kb_exp: 15
+exp_flag: false
