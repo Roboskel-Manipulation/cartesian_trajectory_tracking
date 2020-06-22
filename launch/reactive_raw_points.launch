@@ -1,12 +1,15 @@
 <?xml version='1.0'?>
 <launch>
 	<arg name='gui' value='false'/>
-	<arg name='trajectory_file' default='/home/ttsitos/Desktop/yaml_files/fast_gpu/cloudy_day/raw_yaml/md_arrow_n.yaml'/>
+	<arg name='trajectory_file' default='/home/thanasis/Desktop/yaml_files/fast_gpu/cloudy_day/raw_yaml/md_arrow_n.yaml'/>
 
-	<node name='raw_publish' type='raw_publish.py' pkg='reactive_control' output='screen' respawn='false' args='$(arg trajectory_file)'>
+	<node name='raw_publish' type='raw_publish.py' pkg='reactive_control' output='log' respawn='false' args='$(arg trajectory_file)'>
 	</node>
 
-	<include file="$(find reactive_control)/launch/reactive_control_launch.launch">
+<!-- 	<include file="$(find reactive_control)/launch/reactive_control_launch.launch">
+	</include> -->
+
+	<include file="$(find reactive_control)/launch/reactive_control_acc_launch.launch">
 	</include>
 
 	<include file="$(find manos_gazebo)/launch/manos_gazebo.launch">

@@ -4,7 +4,7 @@ yOffset: 0.4
 zOffset: 0
 var: false
 var_gain: 0.2
-sim: false
+sim: true
 Ka: 0.18
 Kb: 10
 min_dis: 0.0

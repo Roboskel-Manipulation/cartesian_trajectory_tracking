@@ -10,7 +10,7 @@ import numpy as np
 
 def main():
 	rospy.init_node("points_extraction_from_yaml")
-	pub = rospy.Publisher("trajectory_points", Point, queue_size=100)
+	pub = rospy.Publisher("trajectory_points", PointStamped, queue_size=100)
 	pubRaw = rospy.Publisher("vis_raw", Marker, queue_size=100)
 	x, y, z = [], [], []
 	times = []
@@ -61,10 +61,11 @@ def main():
 				init_point_x = keypoint.points.point.x
 				init_point_y = keypoint.points.point.y
 				init_point_z = keypoint.points.point.z
-				point = Point()
-				point.x = init_point_x
-				point.y = init_point_y
-				point.z = init_point_z
+				point = PointStamped()
+				point.point.x = init_point_x
+				point.point.y = init_point_y
+				point.point.z = init_point_z
+				point.header.stamp = rospy.Time(time_point)
 				rospy.sleep(1)
 				pub.publish(point)
 				rospy.sleep(10)
@@ -89,10 +90,11 @@ def main():
 						dis_y = keypoint.points.point.y - init_point_y
 						dis_z = keypoint.points.point.z - init_point_z
 					if start:
-						point = Point()
-						point.x = keypoint.points.point.x
-						point.y = keypoint.points.point.y
-						point.z = keypoint.points.point.z
+						point = PointStamped()
+						point.point.x = keypoint.points.point.x
+						point.point.y = keypoint.points.point.y
+						point.point.z = keypoint.points.point.z
+						point.header.stamp = rospy.Time(time_point)
 						pub.publish(point)
 						try:
 							rospy.loginfo("Time duration: %f"%(time_point-time_point_prev))
