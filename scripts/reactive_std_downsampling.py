@@ -48,6 +48,7 @@ def callback(data):
 	# z_tmp = data.point.z
 	for i in range(len(data.keypoints)):
 		if (data.keypoints[i].name == "RWrist"):
+			print ('received point')
 			x_tmp = data.keypoints[i].points.point.x
 			y_tmp = data.keypoints[i].points.point.y
 			z_tmp = data.keypoints[i].points.point.z
@@ -55,13 +56,14 @@ def callback(data):
 			break
 
 	count += 1
-	if init_point and x_tmp > 0 and x_tmp <= 0.45 and y_tmp > 0 and y_tmp <= 0.45 and z_tmp > 0 and z_tmp <= 0.45:
+	if init_point and (x_tmp < 0 and x_tmp >= -0.45 and y_tmp < 0 and y_tmp >= -0.45 and z_tmp > 0 and z_tmp <= 0.1):
 		point = Point()
 		point.x = x_tmp
 		point.y = y_tmp
 		point.z = z_tmp
 		pub.publish(point)
 		init_point = False
+		print (x_tmp, y_tmp, z_tmp)
 	if not end_flag:
 		if x_tmp != 0 and y_tmp != 0 and z_tmp != 0:
 			if len(xRaw) == 0 or (len(xRaw) >= 1 and abs(xRaw[-1] - x_tmp) < 0.1 and abs(yRaw[-1] - y_tmp) < 0.1 and abs(zRaw[-1] - z_tmp) < 0.1):
@@ -118,12 +120,15 @@ def callback(data):
 							rospy.loginfo("Time elapsed: %f" %sum_time)
 							end_flag = False
 
-
-
-if __name__ == "__main__":
+def movement_detection_node():
 	global pub
 	rospy.init_node("movement_detection_downsampling_node")
 	print ("Started node")
 	pub = rospy.Publisher("trajectory_points", Point, queue_size=10)
-	sub = rospy.Subscriber("raw_points_online", Keypoint3d_list, callback)
+	sub = rospy.Subscriber("raw_points", Keypoint3d_list, callback)
 	rospy.spin()
+
+
+
+if __name__ == "__main__":
+	movement_detection_node()

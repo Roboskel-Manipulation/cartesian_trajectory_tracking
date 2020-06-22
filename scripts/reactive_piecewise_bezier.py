@@ -29,18 +29,18 @@ init_point = True
 def callback(data):
 	global init_point, start_bz_time, init_x, init_y, init_z, second_point, sum_time, count, pub, pub_all, xV_tmp, yV_tmp, zV_tmp, x, y, z, xFinal, yFinal, zFinal, xRaw, yRaw, zRaw, xMov, yMov, zMov, start_threshold, start_flag, end_flag
 	# rospy.loginfo("Received point")
-	x_tmp = data.point.x
-	y_tmp = data.point.y
-	z_tmp = data.point.z
+	# x_tmp = data.point.x
+	# y_tmp = data.point.y
+	# z_tmp = data.point.z
 
-	# for i in range(len(data.keypoints)):
-	# 	if (data.keypoints[i].name == "RWrist"):
-	# 		print ('received point')
-	# 		x_tmp = data.keypoints[i].points.point.x
-	# 		y_tmp = data.keypoints[i].points.point.y
-	# 		z_tmp = data.keypoints[i].points.point.z
-	# 		timestamp = data.keypoints[i].points.header.stamp.to_sec()
-	# 		break
+	for i in range(len(data.keypoints)):
+		if (data.keypoints[i].name == "RWrist"):
+			print ('received point')
+			x_tmp = data.keypoints[i].points.point.x
+			y_tmp = data.keypoints[i].points.point.y
+			z_tmp = data.keypoints[i].points.point.z
+			timestamp = data.keypoints[i].points.header.stamp.to_sec()
+			break
 
 	if end_flag:
 		if x_tmp != 0 and y_tmp != 0 and z_tmp != 0:
@@ -182,7 +182,7 @@ def movement_detection_node():
 	pub_all = rospy.Publisher("trajectory_points_all", Point, queue_size=10)	
 	# sub = rospy.Subscriber("raw_points", Point, callback)
 	# sub = rospy.Subscriber("raw_points_online", Keypoint3d_list, callback)
-	sub = rospy.Subscriber("raw_points", PointStamped, callback)
+	sub = rospy.Subscriber("raw_points", Keypoint3d_list, callback)
 	rospy.spin()
 
 

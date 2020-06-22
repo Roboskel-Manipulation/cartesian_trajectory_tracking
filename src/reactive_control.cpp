@@ -5,6 +5,7 @@ float dis_points, dis_x, dis_y, dis_z;
 float Ka, Kb, min_dis, max_dis, Ka_exp, Kb_exp;
 bool exp_flag;
 std_msgs::Float64MultiArray gain_array;
+geometry_msgs::Twist vel_check;
 
 float euclidean_distance (std::shared_ptr<std::vector<float>> v1, std::shared_ptr<std::vector<float>> v2){
 	float temp = 0;
@@ -42,7 +43,6 @@ void human_motion_callback(const geometry_msgs::PointConstPtr human_msg){
 	}
 
 	count += 1;
-	// std::cout << count << std::endl;
 	desired_robot_position->point.x = human_msg->x + xOffset - dis_x;
 	desired_robot_position->point.y = human_msg->y + yOffset - dis_y;
 	temp_z = human_msg->z - dis_y;
@@ -66,6 +66,9 @@ void human_motion_callback(const geometry_msgs::PointConstPtr human_msg){
 		end_time = ros::Time::now().toSec();
 		// ROS_INFO("Time elapsed: %f", end_time-start_time);
 	}
+	// ROS_INFO("Count %d", count);
+	// vel_check.linear.x = 0.1;
+	// pub.publish(vel_check);
 }
 
 void state_callback (const trajectory_execution_msgs::PoseTwist::ConstPtr state_msg){
