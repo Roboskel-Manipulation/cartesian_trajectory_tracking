@@ -33,10 +33,10 @@ def interpolation(p1, p2, dis, dur):
 		x.append((1-i)*p1[0] + i*p2[0])
 		y.append((1-i)*p1[1] + i*p2[1])
 		z.append((1-i)*p1[2] + i*p2[2])
-		point = Point()
-		point.x = (1-i)*p1[0] + i*p2[0]
-		point.y = (1-i)*p1[1] + i*p2[1]
-		point.z = (1-i)*p1[2] + i*p2[2]
+		point = PointStamped()
+		point.point.x = (1-i)*p1[0] + i*p2[0]
+		point.point.y = (1-i)*p1[1] + i*p2[1]
+		point.point.z = (1-i)*p1[2] + i*p2[2]
 		rospy.sleep(pub_rate)
 		pub.publish(point)
 
@@ -48,7 +48,6 @@ def callback(data):
 	# z_tmp = data.point.z
 	for i in range(len(data.keypoints)):
 		if (data.keypoints[i].name == "RWrist"):
-			print ('received point')
 			x_tmp = data.keypoints[i].points.point.x
 			y_tmp = data.keypoints[i].points.point.y
 			z_tmp = data.keypoints[i].points.point.z
@@ -57,13 +56,13 @@ def callback(data):
 
 	count += 1
 	if init_point and (x_tmp < 0 and x_tmp >= -0.45 and y_tmp < 0 and y_tmp >= -0.45 and z_tmp > 0 and z_tmp <= 0.1):
-		point = Point()
-		point.x = x_tmp
-		point.y = y_tmp
-		point.z = z_tmp
+		point = PointStamped()
+		point.point.x = x_tmp
+		point.point.y = y_tmp
+		point.point.z = z_tmp
 		pub.publish(point)
 		init_point = False
-		print (x_tmp, y_tmp, z_tmp)
+
 	if not end_flag:
 		if x_tmp != 0 and y_tmp != 0 and z_tmp != 0:
 			if len(xRaw) == 0 or (len(xRaw) >= 1 and abs(xRaw[-1] - x_tmp) < 0.1 and abs(yRaw[-1] - y_tmp) < 0.1 and abs(zRaw[-1] - z_tmp) < 0.1):
@@ -90,10 +89,10 @@ def callback(data):
 							y.append(y_tmp)
 							z.append(z_tmp)
 							times.append(timestamp)
-							point = Point()
-							point.x = x_tmp
-							point.y = y_tmp
-							point.z = z_tmp
+							point = PointStamped()
+							point.point.x = x_tmp
+							point.point.y = y_tmp
+							point.point.z = z_tmp
 							pub.publish(point)
 						else:
 							dis = distance.euclidean(list(zip(x, y, z))[-1], [x_tmp, y_tmp, z_tmp])
@@ -103,10 +102,10 @@ def callback(data):
 									y.append(y_tmp)
 									z.append(z_tmp)
 									times.append(timestamp)
-									point = Point()
-									point.x = x_tmp
-									point.y = y_tmp
-									point.z = z_tmp
+									point = PointStamped()
+									point.point.x = x_tmp
+									point.point.y = y_tmp
+									point.point.z = z_tmp
 									pub.publish(point)
 								else:
 									interpolation(list(zip(x, y, z))[-1], [x_tmp, y_tmp, z_tmp], dis, dur=timestamp-times[-1])
@@ -118,13 +117,13 @@ def callback(data):
 						if std_x <= 0.01 and std_y <= 0.01 and std_z <= 0.01:
 							print("End movement at sample %d" %count)
 							rospy.loginfo("Time elapsed: %f" %sum_time)
-							end_flag = False
+							end_flag = True
 
 def movement_detection_node():
 	global pub
 	rospy.init_node("movement_detection_downsampling_node")
 	print ("Started node")
-	pub = rospy.Publisher("trajectory_points", Point, queue_size=10)
+	pub = rospy.Publisher("trajectory_points", PointStamped, queue_size=10)
 	sub = rospy.Subscriber("raw_points", Keypoint3d_list, callback)
 	rospy.spin()
 

@@ -51,11 +51,10 @@ def callback(data):
 	# print (x_tmp, y_tmp, z_tmp)
 	count += 1
 	if init_point and x_tmp < 0 and x_tmp >= -0.45 and y_tmp < 0 and y_tmp >= -0.45:
-		print ('ok')
-		point = Point()
-		point.x = x_tmp
-		point.y = y_tmp
-		point.z = z_tmp
+		point = PointStamped()
+		point.point.x = x_tmp
+		point.point.y = y_tmp
+		point.point.z = z_tmp
 		init_x = x_tmp
 		init_y = y_tmp
 		init_z = z_tmp
@@ -126,23 +125,24 @@ def callback(data):
 										# pub_rate = bz_duration/(len(x)-1)
 										pub_rate = (3*0.047)/(len(x)-1)
 									for i in xrange(1, len(x)):
-										point = Point()
-										point.x = x[i]
-										point.y = y[i]
+										point = PointStamped()
+										point.point.x = x[i]
+										point.point.y = y[i]
+										point.point.z = z[i]
 										if i==1:
-											point.z = z[i] + 10
+											point.point.z = z[i] + 10
 										else:
-											point.z = z[i]
+											point.point.z = z[i]
 										if second_point:
 											second_point = False
 											dis = distance.euclidean([x[i], y[i], z[i]], [init_x, init_y, init_z])
 											num_points = dis//0.012 - 1
 											for j in np.linspace(0, 1, num_points):
 												if j!= 0:
-													point = Point()
-													point.x = (1-j)*init_x + j*x[i]
-													point.y = (1-j)*init_y + j*y[i]
-													point.z = (1-j)*init_z + j*z[i]
+													point = PointStamped()
+													point.point.x = (1-j)*init_x + j*x[i]
+													point.point.y = (1-j)*init_y + j*y[i]
+													point.point.z = (1-j)*init_z + j*z[i]
 													pub.publish(point)
 													rospy.sleep(0.001)
 										else:
@@ -178,7 +178,7 @@ def movement_detection_node():
 	global pub, pub_all, start_threshold
 	rospy.loginfo("Ready to record NEW movement")
 	start_threshold = 24
-	pub = rospy.Publisher("trajectory_points", Point, queue_size=10)	
+	pub = rospy.Publisher("trajectory_points", PointStamped, queue_size=10)	
 	pub_all = rospy.Publisher("trajectory_points_all", Point, queue_size=10)	
 	# sub = rospy.Subscriber("raw_points", Point, callback)
 	# sub = rospy.Subscriber("raw_points_online", Keypoint3d_list, callback)

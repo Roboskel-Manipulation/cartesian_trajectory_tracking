@@ -6,6 +6,7 @@ float Ka, Kb, min_dis, max_dis, Ka_exp, Kb_exp;
 bool exp_flag;
 std_msgs::Float64MultiArray gain_array;
 geometry_msgs::Twist vel_check;
+std_msgs::Float64 dis_all, dis_max;
 
 float euclidean_distance (std::shared_ptr<std::vector<float>> v1, std::shared_ptr<std::vector<float>> v2){
 	float temp = 0;
@@ -15,19 +16,19 @@ float euclidean_distance (std::shared_ptr<std::vector<float>> v1, std::shared_pt
 	return sqrt(temp);
 }
 
-void human_motion_callback(const geometry_msgs::PointConstPtr human_msg){
+void human_motion_callback(const geometry_msgs::PointStampedConstPtr human_msg){
 	received_point = true;
 	if (count == 0){
-		init_x = human_msg->x + xOffset;
-		init_y = human_msg->y + yOffset;
-		init_z = human_msg->z + zOffset;
+		init_x = human_msg->point.x + xOffset;
+		init_y = human_msg->point.y + yOffset;
+		init_z = human_msg->point.z + zOffset;
 	}
 	else{
 		if (count == 1){
 			start_time = ros::Time::now().toSec();
-			dis_x = human_msg->x + xOffset - init_x;
-			dis_y = human_msg->y + yOffset - init_y;
-			dis_z = human_msg->z + zOffset - init_z;
+			dis_x = human_msg->point.x + xOffset - init_x;
+			dis_y = human_msg->point.y + yOffset - init_y;
+			dis_z = human_msg->point.z + zOffset - init_z;
 		}
 		timenow = ros::Time::now();
 		desired_robot_position->header.stamp = timenow;
@@ -38,19 +39,22 @@ void human_motion_callback(const geometry_msgs::PointConstPtr human_msg){
 		dis.data = sqrt(pow(desired_robot_position->point.x - robot_state->point.x, 2) 
 			+ pow(desired_robot_position->point.y - robot_state->point.y, 2));
 		dis_pub.publish(dis);
+		dis_max.data = sqrt(pow(human_msg->point.x + xOffset - robot_state->point.x, 2) 
+			+ pow(human_msg->point.y + yOffset - robot_state->point.y, 2));
+		dis_max_pub.publish(dis_max);
 		marker_robot->points.push_back(robot_state->point);
 		init_point = true;
 	}
 
 	count += 1;
-	desired_robot_position->point.x = human_msg->x + xOffset - dis_x;
-	desired_robot_position->point.y = human_msg->y + yOffset - dis_y;
-	temp_z = human_msg->z - dis_y;
+	desired_robot_position->point.x = human_msg->point.x + xOffset - dis_x;
+	desired_robot_position->point.y = human_msg->point.y + yOffset - dis_y;
+	temp_z = human_msg->point.z - dis_y;
 	if (temp_z > 10){
-		desired_robot_position->point.z = human_msg->z - 10 + zOffset;
+		desired_robot_position->point.z = human_msg->point.z - 10 + zOffset;
 	}
 	else{
-		desired_robot_position->point.z = human_msg->z + zOffset;		
+		desired_robot_position->point.z = human_msg->point.z + zOffset;		
 	}
 	desired_robot_position->header.stamp = ros::Time::now();
 	control_points_pub.publish(*desired_robot_position);
@@ -88,6 +92,9 @@ void state_callback (const trajectory_execution_msgs::PoseTwist::ConstPtr state_
 			pub.publish(*vel_control);
 		}
 		else{
+			dis_all.data = sqrt(pow(desired_robot_position->point.x - robot_state->point.x, 2) 
+				+ pow(desired_robot_position->point.y - robot_state->point.y, 2));
+			dis_all_pub.publish(dis_all);
 			if (var){
 				v1->push_back(robot_state->point.x);
 				v1->push_back(robot_state->point.y);
@@ -98,7 +105,7 @@ void state_callback (const trajectory_execution_msgs::PoseTwist::ConstPtr state_
 				dis_points = euclidean_distance(v1, v2);
 				ROS_INFO("The distance is: %f", euclidean_distance(v1, v2));
 				if (exp_flag){
-					D = Ka/(1+exp(Ka_exp*(dis_points-min_dis)))+Kb/(1+exp(-Kb_exp*(dis_points-max_dis)));
+					D = Ka/(1+exp(Ka_exp*(dis_points-min_dis)))+Kb/(1+exp(-Kb_exp*(dis_points-max_dis)))-1;
 				}
 				else{
 					D = Ka/dis_points; // + Kb/(max_dis-dis_points);
@@ -120,6 +127,7 @@ void state_callback (const trajectory_execution_msgs::PoseTwist::ConstPtr state_
 				v2->clear();
 				D_v.push_back(D);
 			}
+
 			// ROS_INFO("The gain is %f", D);
 			vel_control->linear.x = D*(desired_robot_position->point.x - robot_state->point.x);
 			vel_control->linear.y = D*(desired_robot_position->point.y - robot_state->point.y);
@@ -203,6 +211,8 @@ int main(int argc, char** argv){
 	state_pub_high_f = n.advertise<trajectory_execution_msgs::PoseTwist>("/ee_position_high_f", 100);
 	state_pub_low_f = n.advertise<geometry_msgs::PointStamped>("/ee_position_low_f", 100);
 	dis_pub = n.advertise<std_msgs::Float64>("/response_topic", 100);
+	dis_all_pub = n.advertise<std_msgs::Float64>("/distance_topic", 100);
+	dis_max_pub = n.advertise<std_msgs::Float64>("/dis_max_topic", 100);
 	gain_pub = n.advertise<std_msgs::Float64MultiArray>("/gain_topic", 100);
 	vis_human_pub = n.advertise<visualization_msgs::Marker>("/vis_human_topic", 100);
 	vis_robot_pub = n.advertise<visualization_msgs::Marker>("/vis_robot_topic", 100);

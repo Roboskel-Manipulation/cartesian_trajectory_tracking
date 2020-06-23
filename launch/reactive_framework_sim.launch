@@ -10,7 +10,7 @@
 
 
 	<group if="$(arg case_raw)">
-		<node name="raw_input_node" type="raw_publish.py" pkg="reactive_control" args="$(arg trajectory_file)" respawn="false" output="screen">
+		<node name="raw_input_node" type="raw_publish.py" pkg="reactive_control" args="$(arg trajectory_file)" respawn="false" output="log">
 		</node>
 	</group>
 
@@ -45,12 +45,13 @@
 		</node>
 	</group>
 
-<!-- 	<include file="$(find reactive_control)/launch/reactive_control_launch.launch">
-	</include> -->
 
-	<include file="$(find reactive_control)/launch/reactive_control_acc_launch.launch">
+	<include file="$(find reactive_control)/launch/reactive_control_launch.launch">
 	</include>
 
+<!-- 	<include file="$(find reactive_control)/launch/reactive_control_acc_launch.launch">
+	</include>
+ -->
 	<include file="$(find manos_gazebo)/launch/manos_gazebo.launch">
 		<arg name="cart_control" value="true"/>
 		<arg name="gui" value="$(arg gui)"/>
