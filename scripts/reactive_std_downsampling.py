@@ -24,20 +24,28 @@ init_point = True
 count_points = []
 count_inter = 0
 time_debug = {}
+timestamp = None
 
 def interpolation(p1, p2, dis, dur):
-	global x, y, z, ds_thres, pub, num_points, count_inter
+	global timestamp, x, y, z, ds_thres, pub, num_points, count_inter
 	num_inter_points = dis//ds_thres
-	# rospy.loginfo("Num of points %d"%num_points)
-	# rospy.loginfo("Duration and number of points: %f %d"%(dur, num_points))
+	pub_rate = dur/(num_inter_points+1)
+	# rospy.loginfo("Num of points %d"%num_inter_points)
+	rospy.loginfo("Duration and number of points and pub rate: %f %d %f"%(dur, num_points, pub_rate))
 	# rospy.loginfo("Duration and fake Duration %f %f"%(dur, num_points*0.047))
-	pub_rate = (num_points+1)*0.047/(num_inter_points-1)
-	for i in np.linspace(0,1,num_inter_points + 1):
+	# pub_rate = (num_points+1)*0.047/(num_inter_points)
+	try:
+		time_inter = np.linspace(times[-1], timestamp, num_inter_points)
+	except Exception as e:
+		rospy.loginfo(e)
+
+	for index, i in enumerate(np.linspace(0,1,num_inter_points + 1)):
 		if i==0 or i==1:
 			continue
 		x.append((1-i)*p1[0] + i*p2[0])
 		y.append((1-i)*p1[1] + i*p2[1])
 		z.append((1-i)*p1[2] + i*p2[2])
+		times.append(time_inter[index])
 		point = PointStamped()
 		point.point.x = (1-i)*p1[0] + i*p2[0]
 		point.point.y = (1-i)*p1[1] + i*p2[1]
@@ -46,7 +54,7 @@ def interpolation(p1, p2, dis, dur):
 		pub.publish(point)
 
 def callback(data):
-	global init_point, times, num_points, sum_time, x, y, z, xRaw, yRaw, zRaw, xV_tmp, yV_tmp, zV_tmp, start_threshold, ds_thres, ip_thres, init_point, end_flag, start_flag, count
+	global timestamp, init_point, times, num_points, sum_time, x, y, z, xRaw, yRaw, zRaw, xV_tmp, yV_tmp, zV_tmp, start_threshold, ds_thres, ip_thres, init_point, end_flag, start_flag, count
 	start_time = rospy.get_time()
 	for i in range(len(data.keypoints)):
 		if (data.keypoints[i].name == "RWrist"):
@@ -113,13 +121,14 @@ def callback(data):
 									time_debug[count] = timestamp
 									pub.publish(point)
 								else:
-									print (time_debug.items()[-1])
-									print (count, timestamp)
-								interpolation(list(zip(x, y, z))[-1], [x_tmp, y_tmp, z_tmp], dis, timestamp-times[-1])
-									
-								num_points = 0
-								end_time = rospy.get_time()
-								sum_time += end_time - start_time
+									# print (time_debug.items()[-1])
+									# print (count, timestamp)
+									# print (timestamp - time_debug.values()[-1])
+									# print (num_points)
+									interpolation(list(zip(x, y, z))[-1], [x_tmp, y_tmp, z_tmp], dis, timestamp-times[-1])
+									num_points = 0
+									end_time = rospy.get_time()
+									sum_time += end_time - start_time
 							else:
 								num_points += 1
 								# print (num_points)
@@ -132,7 +141,7 @@ def movement_detection_node():
 	global pub
 	rospy.init_node("movement_detection_downsampling_node")
 	print ("Started node")
-	pub = rospy.Publisher("trajectory_points", PointStamped, queue_size=10)
+	pub = rospy.Publisher("trajectory_points", PointStamped, queue_size=10, latch=True)
 	sub = rospy.Subscriber("raw_points", Keypoint3d_list, callback)
 	rospy.spin()
 
