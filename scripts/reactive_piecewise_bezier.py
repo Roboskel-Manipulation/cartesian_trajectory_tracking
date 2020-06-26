@@ -178,7 +178,7 @@ def movement_detection_node():
 	global pub, pub_all, start_threshold
 	rospy.loginfo("Ready to record NEW movement")
 	start_threshold = 24
-	pub = rospy.Publisher("trajectory_points", PointStamped, queue_size=10)	
+	pub = rospy.Publisher("trajectory_points", PointStamped, queue_size=10, latch=True)	
 	pub_all = rospy.Publisher("trajectory_points_all", Point, queue_size=10)	
 	# sub = rospy.Subscriber("raw_points", Point, callback)
 	# sub = rospy.Subscriber("raw_points_online", Keypoint3d_list, callback)

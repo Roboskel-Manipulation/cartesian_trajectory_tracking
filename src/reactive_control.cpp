@@ -2,7 +2,7 @@
 #include <bits/stdc++.h>
 
 float dis_points, dis_x, dis_y, dis_z;
-float Ka, Kb, min_dis, max_dis, Ka_exp, Kb_exp;
+float Ka, Kb, min_dis, max_dis, Ka_exp, Kb_exp, c;
 bool exp_flag;
 std_msgs::Float64MultiArray gain_array;
 geometry_msgs::Twist vel_check;
@@ -105,10 +105,17 @@ void state_callback (const trajectory_execution_msgs::PoseTwist::ConstPtr state_
 				dis_points = euclidean_distance(v1, v2);
 				ROS_INFO("The distance is: %f", euclidean_distance(v1, v2));
 				if (exp_flag){
-					D = Ka/(1+exp(Ka_exp*(dis_points-min_dis)))+Kb/(1+exp(-Kb_exp*(dis_points-max_dis)))-1;
+					D = Ka/(1+exp(Ka_exp*(dis_points-min_dis)))+Kb/(1+exp(-Kb_exp*(dis_points-max_dis)))+c;
 				}
 				else{
 					D = Ka/dis_points; // + Kb/(max_dis-dis_points);
+					if (dis_points < 0.005){
+						D=1;
+					}
+					if (dis_points > 0.1){
+						D=6;
+					}
+					std::cout << D << std::endl;
 				}
 
 				gain_array.data.push_back(dis_points);
@@ -172,7 +179,8 @@ int main(int argc, char** argv){
 	n.param("reactive_control_node/min_dis", min_dis, 1.0f);	
 	n.param("reactive_control_node/max_dis", max_dis, 1.0f);	
 	n.param("reactive_control_node/exp_flag", exp_flag, true);	
-	
+	n.param("reactive_control_node/c", c, 1.0f);
+
 	marker_human->header.frame_id = "base_link";
 	marker_human->type = visualization_msgs::Marker::LINE_STRIP;
 	marker_human->action = visualization_msgs::Marker::ADD;
@@ -197,7 +205,7 @@ int main(int argc, char** argv){
     marker_robot->color.b = 1.0f;
     marker_robot->color.a = 1.0;
   	marker_robot->lifetime = ros::Duration(100);
-  	
+  
   	if (sim){
   		ee_state_topic = "/manos_cartesian_velocity_controller_sim/ee_state";
   		ee_vel_command_topic = "/manos_cartesian_velocity_controller_sim/command_cart_vel";	

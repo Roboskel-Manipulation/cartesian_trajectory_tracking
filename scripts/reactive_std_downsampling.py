@@ -21,12 +21,17 @@ sum_time = 0
 num_points = 0
 times = []
 init_point = True
+count_points = []
+count_inter = 0
+time_debug = {}
 
 def interpolation(p1, p2, dis, dur):
-	global x, y, z, ds_thres, pub, num_points
+	global x, y, z, ds_thres, pub, num_points, count_inter
 	num_inter_points = dis//ds_thres
-	pub_rate = (num_points+1)*dur/(num_inter_points-1)
-	print (pub_rate)
+	# rospy.loginfo("Num of points %d"%num_points)
+	# rospy.loginfo("Duration and number of points: %f %d"%(dur, num_points))
+	# rospy.loginfo("Duration and fake Duration %f %f"%(dur, num_points*0.047))
+	pub_rate = (num_points+1)*0.047/(num_inter_points-1)
 	for i in np.linspace(0,1,num_inter_points + 1):
 		if i==0 or i==1:
 			continue
@@ -43,9 +48,6 @@ def interpolation(p1, p2, dis, dur):
 def callback(data):
 	global init_point, times, num_points, sum_time, x, y, z, xRaw, yRaw, zRaw, xV_tmp, yV_tmp, zV_tmp, start_threshold, ds_thres, ip_thres, init_point, end_flag, start_flag, count
 	start_time = rospy.get_time()
-	# x_tmp = data.point.x
-	# y_tmp = data.point.y
-	# z_tmp = data.point.z
 	for i in range(len(data.keypoints)):
 		if (data.keypoints[i].name == "RWrist"):
 			x_tmp = data.keypoints[i].points.point.x
@@ -54,6 +56,7 @@ def callback(data):
 			timestamp = data.keypoints[i].points.header.stamp.to_sec()
 			break
 
+	count_points.append(count)
 	count += 1
 	if init_point and (x_tmp < 0 and x_tmp >= -0.45 and y_tmp < 0 and y_tmp >= -0.45 and z_tmp > 0 and z_tmp <= 0.1):
 		point = PointStamped()
@@ -89,6 +92,7 @@ def callback(data):
 							y.append(y_tmp)
 							z.append(z_tmp)
 							times.append(timestamp)
+							time_debug[count] = timestamp
 							point = PointStamped()
 							point.point.x = x_tmp
 							point.point.y = y_tmp
@@ -106,14 +110,19 @@ def callback(data):
 									point.point.x = x_tmp
 									point.point.y = y_tmp
 									point.point.z = z_tmp
+									time_debug[count] = timestamp
 									pub.publish(point)
 								else:
-									interpolation(list(zip(x, y, z))[-1], [x_tmp, y_tmp, z_tmp], dis, dur=timestamp-times[-1])
+									print (time_debug.items()[-1])
+									print (count, timestamp)
+								interpolation(list(zip(x, y, z))[-1], [x_tmp, y_tmp, z_tmp], dis, timestamp-times[-1])
+									
 								num_points = 0
 								end_time = rospy.get_time()
 								sum_time += end_time - start_time
 							else:
 								num_points += 1
+								# print (num_points)
 						if std_x <= 0.01 and std_y <= 0.01 and std_z <= 0.01:
 							print("End movement at sample %d" %count)
 							rospy.loginfo("Time elapsed: %f" %sum_time)
