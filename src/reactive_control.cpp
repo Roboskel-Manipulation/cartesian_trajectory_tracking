@@ -7,6 +7,8 @@ bool exp_flag;
 std_msgs::Float64MultiArray gain_array;
 geometry_msgs::Twist vel_check;
 std_msgs::Float64 dis_all, dis_max;
+float Dx, Dy, Dz;
+float x_error, y_error, z_error;
 
 float euclidean_distance (std::shared_ptr<std::vector<float>> v1, std::shared_ptr<std::vector<float>> v2){
 	float temp = 0;
@@ -22,6 +24,7 @@ void human_motion_callback(const geometry_msgs::PointStampedConstPtr human_msg){
 		init_x = human_msg->point.x + xOffset;
 		init_y = human_msg->point.y + yOffset;
 		init_z = human_msg->point.z + zOffset;
+		std::cout << init_x << init_y << init_z << std::endl;
 	}
 	else{
 		if (count == 1){
@@ -103,9 +106,16 @@ void state_callback (const trajectory_execution_msgs::PoseTwist::ConstPtr state_
 				v2->push_back(desired_robot_position->point.y);
 				v2->push_back(desired_robot_position->point.z);
 				dis_points = euclidean_distance(v1, v2);
+				x_error = abs(robot_state->point.x - desired_robot_position->point.x);
+				y_error = abs(robot_state->point.y - desired_robot_position->point.y);
+				z_error - abs(robot_state->point.z - desired_robot_position->point.z);
+
 				ROS_INFO("The distance is: %f", euclidean_distance(v1, v2));
 				if (exp_flag){
-					D = Ka/(1+exp(Ka_exp*(dis_points-min_dis)))+Kb/(1+exp(-Kb_exp*(dis_points-max_dis)))+c;
+					Dx = Ka/(1+exp(Ka_exp*(x_error-min_dis)))+Kb/(1+exp(-Kb_exp*(x_error-max_dis)))+c;
+					Dy = Ka/(1+exp(Ka_exp*(y_error-min_dis)))+Kb/(1+exp(-Kb_exp*(y_error-max_dis)))+c;
+					Dz = Ka/(1+exp(Ka_exp*(z_error-min_dis)))+Kb/(1+exp(-Kb_exp*(z_error-max_dis)))+c;
+					D = Ka/(1+exp(Ka_exp*(dis_points-min_dis)))+Kb/(1+exp(-Kb_exp*(dis_points-max_dis)))+c;	
 				}
 				else{
 					D = Ka/dis_points; // + Kb/(max_dis-dis_points);
@@ -136,6 +146,15 @@ void state_callback (const trajectory_execution_msgs::PoseTwist::ConstPtr state_
 			}
 
 			// ROS_INFO("The gain is %f", D);
+			ROS_INFO("The gains are:");
+			ROS_INFO("Dx = %f", Dx);
+			ROS_INFO("Dy = %f", Dy);
+			ROS_INFO("Dz = %f", Dz);
+			if (not var){
+				Dx = D;
+				Dy = D;
+				Dz = D;
+			}
 			vel_control->linear.x = D*(desired_robot_position->point.x - robot_state->point.x);
 			vel_control->linear.y = D*(desired_robot_position->point.y - robot_state->point.y);
 			vel_control->linear.z = D*(desired_robot_position->point.z - robot_state->point.z);
