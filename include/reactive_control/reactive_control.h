@@ -4,18 +4,23 @@
 #include <trajectory_execution_msgs/PoseTwist.h>
 #include <keypoint_3d_matching_msgs/Keypoint3d_list.h>
 #include <geometry_msgs/PointStamped.h>
+#include <geometry_msgs/PoseStamped.h>
+#include <geometry_msgs/Quaternion.h>
 #include <visualization_msgs/Marker.h>
 #include <std_msgs/Float64.h>
 #include <std_msgs/Float64MultiArray.h>
+
+#include <tf/transform_datatypes.h>
 #include <numeric>
 #include <memory>
 #include <math.h>
+
 
 ros::Publisher pub, gain_pub, state_pub_high_f, state_pub_low_f, vis_human_pub, vis_robot_pub, dis_pub, dis_all_pub, dis_max_pub, control_points_pub;
 
 // std::shared_ptr<trajectory_execution_msgs::PoseTwist> robot_state = boost::make_shared<trajectory_execution_msgs::PoseTwist>();
 geometry_msgs::PointStampedPtr desired_robot_position = boost::make_shared<geometry_msgs::PointStamped>();
-geometry_msgs::PointStampedPtr robot_state = boost::make_shared<geometry_msgs::PointStamped>();
+geometry_msgs::PoseStampedPtr robot_state = boost::make_shared<geometry_msgs::PoseStamped>();
 geometry_msgs::TwistPtr vel_control = boost::make_shared<geometry_msgs::Twist>();
 geometry_msgs::TwistPtr safe_vel_control = boost::make_shared<geometry_msgs::Twist>();
 std::shared_ptr<std::vector<float>> v1 = std::make_shared<std::vector<float>>();

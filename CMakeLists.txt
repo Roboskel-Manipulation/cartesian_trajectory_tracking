@@ -37,5 +37,5 @@ include_directories(
 add_executable (reactive_control src/reactive_control.cpp)
 target_link_libraries (reactive_control ${catkin_LIBRARIES})
 
-add_executable (reactive_control_acc src/reactive_control_acc.cpp)
-target_link_libraries (reactive_control_acc ${catkin_LIBRARIES})
+# add_executable (reactive_control_acc src/reactive_control_acc.cpp)
+# target_link_libraries (reactive_control_acc ${catkin_LIBRARIES})

@@ -9,6 +9,13 @@ geometry_msgs::Twist vel_check;
 std_msgs::Float64 dis_all, dis_max;
 float Dx, Dy, Dz;
 float x_error, y_error, z_error;
+geometry_msgs::Quaternion robot_orientation_des, robot_orientation;
+
+tf::Quaternion quat, quat_des;
+double roll_des, pitch_des, yaw_des;
+double roll, pitch, yaw;
+
+
 
 float euclidean_distance (std::shared_ptr<std::vector<float>> v1, std::shared_ptr<std::vector<float>> v2){
 	float temp = 0;
@@ -32,20 +39,26 @@ void human_motion_callback(const geometry_msgs::PointStampedConstPtr human_msg){
 			dis_x = human_msg->point.x + xOffset - init_x;
 			dis_y = human_msg->point.y + yOffset - init_y;
 			dis_z = human_msg->point.z + zOffset - init_z;
+			robot_orientation_des.x = robot_orientation.x;
+			robot_orientation_des.y = robot_orientation.y;
+			robot_orientation_des.z = robot_orientation.z;
+			robot_orientation_des.w = robot_orientation.w;
+			tf::quaternionMsgToTF(robot_orientation_des, quat_des);
+			tf::Matrix3x3(quat_des).getRPY(roll_des, pitch_des, yaw_des);
 		}
 		timenow = ros::Time::now();
 		desired_robot_position->header.stamp = timenow;
 		robot_state->header.stamp = timenow;
 		state_pub_low_f.publish(*robot_state);
-	  	vis_robot_pub.publish(*marker_robot);
+		vis_robot_pub.publish(*marker_robot);
 	  	// ROS_INFO("Num of low freq robot state: %d", count);
-		dis.data = sqrt(pow(desired_robot_position->point.x - robot_state->point.x, 2) 
-			+ pow(desired_robot_position->point.y - robot_state->point.y, 2));
+		dis.data = sqrt(pow(desired_robot_position->point.x - robot_state->pose.position.x, 2) 
+			+ pow(desired_robot_position->point.y - robot_state->pose.position.y, 2));
 		dis_pub.publish(dis);
-		dis_max.data = sqrt(pow(human_msg->point.x + xOffset - robot_state->point.x, 2) 
-			+ pow(human_msg->point.y + yOffset - robot_state->point.y, 2));
+		dis_max.data = sqrt(pow(human_msg->point.x + xOffset - robot_state->pose.position.x, 2) 
+			+ pow(human_msg->point.y + yOffset - robot_state->pose.position.y, 2));
 		dis_max_pub.publish(dis_max);
-		marker_robot->points.push_back(robot_state->point);
+		marker_robot->points.push_back(robot_state->pose.position);
 		init_point = true;
 	}
 
@@ -79,36 +92,41 @@ void human_motion_callback(const geometry_msgs::PointStampedConstPtr human_msg){
 }
 
 void state_callback (const trajectory_execution_msgs::PoseTwist::ConstPtr state_msg){
-	robot_state->point.x = state_msg->pose.position.x;
-	robot_state->point.y = state_msg->pose.position.y;
-	robot_state->point.z = state_msg->pose.position.z;
+	robot_state->pose.position.x = state_msg->pose.position.x;
+	robot_state->pose.position.y = state_msg->pose.position.y;
+	robot_state->pose.position.z = state_msg->pose.position.z;
 	robot_state->header.stamp = ros::Time::now();
+
+	robot_orientation.x = state_msg->pose.orientation.x;
+	robot_orientation.y = state_msg->pose.orientation.y;
+	robot_orientation.z = state_msg->pose.orientation.z;
+	robot_orientation.w = state_msg->pose.orientation.w;
 
 	if (received_point){
 		if (count == 1){
-			vel_control->linear.x = (desired_robot_position->point.x - robot_state->point.x);
-			vel_control->linear.y = (desired_robot_position->point.y - robot_state->point.y);
-			vel_control->linear.z = (desired_robot_position->point.z - robot_state->point.z);
+			vel_control->linear.x = (desired_robot_position->point.x - robot_state->pose.position.x);
+			vel_control->linear.y = (desired_robot_position->point.y - robot_state->pose.position.y);
+			vel_control->linear.z = (desired_robot_position->point.z - robot_state->pose.position.z);
 			vel_control->angular.x = 0;
 			vel_control->angular.y = 0;
 			vel_control->angular.z = 0;
 			pub.publish(*vel_control);
 		}
 		else{
-			dis_all.data = sqrt(pow(desired_robot_position->point.x - robot_state->point.x, 2) 
-				+ pow(desired_robot_position->point.y - robot_state->point.y, 2));
+			dis_all.data = sqrt(pow(desired_robot_position->point.x - robot_state->pose.position.x, 2) 
+				+ pow(desired_robot_position->point.y - robot_state->pose.position.y, 2));
 			dis_all_pub.publish(dis_all);
 			if (var){
-				v1->push_back(robot_state->point.x);
-				v1->push_back(robot_state->point.y);
-				v1->push_back(robot_state->point.z);
+				v1->push_back(robot_state->pose.position.x);
+				v1->push_back(robot_state->pose.position.y);
+				v1->push_back(robot_state->pose.position.z);
 				v2->push_back(desired_robot_position->point.x);
 				v2->push_back(desired_robot_position->point.y);
 				v2->push_back(desired_robot_position->point.z);
 				dis_points = euclidean_distance(v1, v2);
-				x_error = abs(robot_state->point.x - desired_robot_position->point.x);
-				y_error = abs(robot_state->point.y - desired_robot_position->point.y);
-				z_error - abs(robot_state->point.z - desired_robot_position->point.z);
+				x_error = abs(robot_state->pose.position.x - desired_robot_position->point.x);
+				y_error = abs(robot_state->pose.position.y - desired_robot_position->point.y);
+				z_error - abs(robot_state->pose.position.z - desired_robot_position->point.z);
 
 				ROS_INFO("The distance is: %f", euclidean_distance(v1, v2));
 				if (exp_flag){
@@ -146,26 +164,34 @@ void state_callback (const trajectory_execution_msgs::PoseTwist::ConstPtr state_
 			}
 
 			// ROS_INFO("The gain is %f", D);
-			ROS_INFO("The gains are:");
-			ROS_INFO("Dx = %f", Dx);
-			ROS_INFO("Dy = %f", Dy);
-			ROS_INFO("Dz = %f", Dz);
+			// ROS_INFO("The gains are:");
+			// ROS_INFO("Dx = %f", Dx);
+			// ROS_INFO("Dy = %f", Dy);
+			// ROS_INFO("Dz = %f", Dz);
 			if (not var){
 				Dx = D;
 				Dy = D;
 				Dz = D;
 			}
-			vel_control->linear.x = D*(desired_robot_position->point.x - robot_state->point.x);
-			vel_control->linear.y = D*(desired_robot_position->point.y - robot_state->point.y);
-			vel_control->linear.z = D*(desired_robot_position->point.z - robot_state->point.z);
+
+			tf::quaternionMsgToTF(robot_orientation, quat);
+			tf::Matrix3x3(quat).getRPY(roll, pitch, yaw);
+
+			// std::cout << roll << " " << pitch << " " << yaw << std::endl;
+			// std::cout << roll_des << " " << pitch_des << " " << yaw_des << std::endl;
+
+			vel_control->linear.x = D*(desired_robot_position->point.x - robot_state->pose.position.x);
+			vel_control->linear.y = D*(desired_robot_position->point.y - robot_state->pose.position.y);
+			vel_control->linear.z = D*(desired_robot_position->point.z - robot_state->pose.position.z);
 			vel_control->angular.x = 0;
 			vel_control->angular.y = 0;
 			vel_control->angular.z = 0;
 			pub.publish(*vel_control);
+			std::cout << *vel_control << std::endl;
 		}
-		if (abs(robot_state->point.x - init_x) < 0.005
-		 and abs(robot_state->point.y - init_y) < 0.005 
-		 and abs(robot_state->point.z - init_z) < 0.005
+		if (abs(robot_state->pose.position.x - init_x) < 0.005
+		 and abs(robot_state->pose.position.y - init_y) < 0.005 
+		 and abs(robot_state->pose.position.z - init_z) < 0.005
 		 and not init_point){
 		 	// ROS_INFO("Reached the first point");
 		}
@@ -236,7 +262,7 @@ int main(int argc, char** argv){
 
 	pub = n.advertise<geometry_msgs::Twist>(ee_vel_command_topic, 100);
 	state_pub_high_f = n.advertise<trajectory_execution_msgs::PoseTwist>("/ee_position_high_f", 100);
-	state_pub_low_f = n.advertise<geometry_msgs::PointStamped>("/ee_position_low_f", 100);
+	state_pub_low_f = n.advertise<geometry_msgs::PoseStamped>("/ee_position_low_f", 100);
 	dis_pub = n.advertise<std_msgs::Float64>("/response_topic", 100);
 	dis_all_pub = n.advertise<std_msgs::Float64>("/distance_topic", 100);
 	dis_max_pub = n.advertise<std_msgs::Float64>("/dis_max_topic", 100);
