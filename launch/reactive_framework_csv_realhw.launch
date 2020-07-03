@@ -2,7 +2,7 @@
 <launch>
 
 	<arg name="sim" default="true"/>
-	<arg name="gui" value="false"/>
+	<arg name="gui" default="false"/>
 	<arg name="case_piecewise" default="false"/>
 	<arg name="case_downsampling" default="false"/>	
 	<arg name="case_raw" default="false"/>
@@ -32,11 +32,11 @@
 		</node>
 	</group>
 
-	<include file="$(find reactive_control)/launch/reactive_control_launch.launch">
-	</include>
-	
-<!-- 	<include file="$(find reactive_control)/launch/reactive_control_acc_launch.launch">
+<!-- 	<include file="$(find reactive_control)/launch/reactive_control_launch.launch">
 	</include> -->
+	
+	<include file="$(find reactive_control)/launch/reactive_control_acc_launch.launch">
+	</include>
 
 	<group if="$(arg sim)">
 		<include file="$(find manos_gazebo)/launch/manos_gazebo.launch">

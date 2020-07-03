@@ -1,11 +1,11 @@
-D: 2
+D: 500
 K: 2
 xOffset: 0.6
 yOffset: 0.4
 zOffset: 0
 var: false
 var_gain: 0.2
-sim: false
+sim: true
 Ka: 10
 Kb: 30
 min_dis: 0.0
