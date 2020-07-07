@@ -21,11 +21,13 @@ def main():
 			point.points.point.z = float(fl[i+11][11:])
 			point.points.header.stamp = rospy.Time(float(fl[i+5][16:-1]+'.'+fl[i+6][17:].replace(' ', '0')))
 			point.points.header.frame_id = 'camera_rgb_optical_frame'
-			try:
-				sleep_rate = point.points.header.stamp - times[-1]
-				rospy.sleep(sleep_rate)
-			except Exception as e:
-				rospy.loginfo(e)
+			# print (point.points.header.stamp)
+			rospy.sleep(0.05)
+			# try:
+			# 	sleep_rate = point.points.header.stamp - times[-1]
+			# 	rospy.sleep(sleep_rate)
+			# except Exception as e:
+			# 	rospy.loginfo(e)
 			times.append(point.points.header.stamp)
 			keypoints.keypoints.append(point)
 			pub.publish(keypoints)

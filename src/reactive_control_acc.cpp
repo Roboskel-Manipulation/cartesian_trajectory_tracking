@@ -2,11 +2,13 @@
 
 geometry_msgs::TwistStampedPtr robot_velocity = boost::make_shared<geometry_msgs::TwistStamped>();
 geometry_msgs::TwistPtr desired_robot_velocity = boost::make_shared<geometry_msgs::Twist>();
+std_msgs::Float64 time_duration_msg;
 std::vector<float> acc;
 float vel_duration;
 float K, dis_x, dis_y, dis_z;
 float time_duration, time_init;
 ros::Time keypoint_time;
+ros::Publisher time_pub;
 
 float euclidean_distance (std::shared_ptr<std::vector<float>> v1, std::shared_ptr<std::vector<float>> v2){
 	float temp = 0;
@@ -30,6 +32,7 @@ void human_motion_callback(const geometry_msgs::PointStampedConstPtr human_msg){
 			dis_x = human_msg->point.x + xOffset - init_x;
 			dis_y = human_msg->point.y + yOffset - init_y;
 			dis_z = human_msg->point.z + zOffset - init_z;
+			std::cout << dis_z << std::endl;
 		}
 		timenow = ros::Time::now();
 		// desired_robot_position->header.stamp = timenow;
@@ -52,10 +55,18 @@ void human_motion_callback(const geometry_msgs::PointStampedConstPtr human_msg){
 		else{
 
 			time_duration = keypoint_time.toSec() - desired_robot_position->header.stamp.toSec();
+			time_duration_msg.data = time_duration;
+			time_pub.publish(time_duration_msg);
 			// std::cout << time_duration << std::endl;
 			desired_robot_velocity->linear.x = (human_msg->point.x + xOffset - dis_x - desired_robot_position->point.x)/time_duration;
 			desired_robot_velocity->linear.y = (human_msg->point.y + yOffset - dis_y - desired_robot_position->point.y)/time_duration;
 			desired_robot_velocity->linear.z = (human_msg->point.z + zOffset - dis_z - desired_robot_position->point.z)/time_duration;			
+			std::cout << time_duration << std::endl;
+			if (std::isnan(desired_robot_velocity->linear.x)){
+				std::cout << "Time duration limit exceeded" << std::endl;
+				std::cout << time_duration << std::endl;
+			}
+			// std::cout << *desired_robot_velocity << std::endl;
 		}
 	}
 
@@ -63,14 +74,9 @@ void human_motion_callback(const geometry_msgs::PointStampedConstPtr human_msg){
 	// std::cout << count << std::endl;
 	desired_robot_position->point.x = human_msg->point.x + xOffset - dis_x;
 	desired_robot_position->point.y = human_msg->point.y + yOffset - dis_y;
-	temp_z = human_msg->point.z;
-	if (temp_z > 10){
-		desired_robot_position->point.z = human_msg->point.z - 10 + zOffset;
-	}
-	else{
-		desired_robot_position->point.z = human_msg->point.z + zOffset;		
-	}
+	desired_robot_position->point.z = human_msg->point.z + zOffset - dis_z;
 	desired_robot_position->header.stamp = ros::Time::now();
+
 	control_points_pub.publish(*desired_robot_position);
 	marker_human->header.stamp = ros::Time::now();
 
@@ -137,10 +143,10 @@ void state_callback (const trajectory_execution_msgs::PoseTwist::ConstPtr state_
 			acc[1] = K*(acc_command->linear.y) + D*(vel_command->linear.y);
 			acc[2] = K*(acc_command->linear.z) + D*(vel_command->linear.z);
 			
-			std::cout << "The commanded velocities are\n" << *vel_command << std::endl;
+			// std::cout << "The commanded velocities are\n" << *vel_command << std::endl;
 			
 
-			std::cout << "The commanded accalerations are\n" << *acc_command << std::endl;
+			// std::cout << "The commanded accalerations are\n" << *acc_command << std::endl;
 			
 			vel_control->linear.x = robot_velocity->twist.linear.x + acc[0]*vel_duration;
 			vel_control->linear.y = robot_velocity->twist.linear.y + acc[1]*vel_duration;
@@ -221,6 +227,7 @@ int main(int argc, char** argv){
 	pub = n.advertise<geometry_msgs::Twist>(ee_vel_command_topic, 100);
 	state_pub_high_f = n.advertise<trajectory_execution_msgs::PoseTwist>("/ee_position_high_f", 100);
 	state_pub_low_f = n.advertise<geometry_msgs::PoseStamped>("/ee_position_low_f", 100);
+	time_pub = n.advertise<std_msgs::Float64>("/time_topic", 100);
 	dis_pub = n.advertise<std_msgs::Float64>("/response_topic", 100);
 	vis_human_pub = n.advertise<visualization_msgs::Marker>("/vis_human_topic", 100);
 	vis_robot_pub = n.advertise<visualization_msgs::Marker>("/vis_robot_topic", 100);
