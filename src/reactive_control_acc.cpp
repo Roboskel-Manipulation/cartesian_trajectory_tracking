@@ -35,10 +35,11 @@ void human_motion_callback(const geometry_msgs::PointStampedConstPtr human_msg){
 			std::cout << dis_z << std::endl;
 		}
 		timenow = ros::Time::now();
-		// desired_robot_position->header.stamp = timenow;
+		desired_robot_position->header.stamp = timenow;
 		keypoint_time = ros::Time::now();
 		robot_state->header.stamp = timenow;
 		state_pub_low_f.publish(*robot_state);
+		
 		vis_robot_pub.publish(*marker_robot);
 	  	// ROS_INFO("Num of low freq robot state: %d", count);
 		dis.data = sqrt(pow(desired_robot_position->point.x - robot_state->pose.position.x, 2) 
@@ -48,9 +49,11 @@ void human_motion_callback(const geometry_msgs::PointStampedConstPtr human_msg){
 		init_point = true;
 		if (count == 1){
 			time_duration = keypoint_time.toSec() - time_init;
-			desired_robot_velocity->linear.x = (human_msg->point.x + xOffset - dis_x - init_x)/time_duration;
-			desired_robot_velocity->linear.y = (human_msg->point.y + yOffset - dis_x - init_y)/time_duration;
-			desired_robot_velocity->linear.z = (human_msg->point.z + zOffset - dis_x - init_z)/time_duration;
+			if (time_duration != 0){
+				desired_robot_velocity->linear.x = (human_msg->point.x + xOffset - dis_x - init_x)/time_duration;
+				desired_robot_velocity->linear.y = (human_msg->point.y + yOffset - dis_x - init_y)/time_duration;
+				desired_robot_velocity->linear.z = (human_msg->point.z + zOffset - dis_x - init_z)/time_duration;
+			}
 		}
 		else{
 
