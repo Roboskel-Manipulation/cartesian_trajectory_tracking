@@ -32,10 +32,8 @@ void human_motion_callback(const geometry_msgs::PointStampedConstPtr human_msg){
 			dis_x = human_msg->point.x + xOffset - init_x;
 			dis_y = human_msg->point.y + yOffset - init_y;
 			dis_z = human_msg->point.z + zOffset - init_z;
-			std::cout << dis_z << std::endl;
 		}
 		timenow = ros::Time::now();
-		desired_robot_position->header.stamp = timenow;
 		keypoint_time = ros::Time::now();
 		robot_state->header.stamp = timenow;
 		state_pub_low_f.publish(*robot_state);
@@ -60,15 +58,16 @@ void human_motion_callback(const geometry_msgs::PointStampedConstPtr human_msg){
 			time_duration = keypoint_time.toSec() - desired_robot_position->header.stamp.toSec();
 			time_duration_msg.data = time_duration;
 			time_pub.publish(time_duration_msg);
-			// std::cout << time_duration << std::endl;
+			if (time_duration == 0){
+				ROS_INFO("Zero time duration");
+			}
+			else{
+				ROS_INFO("Valid time duration");
+			}
 			desired_robot_velocity->linear.x = (human_msg->point.x + xOffset - dis_x - desired_robot_position->point.x)/time_duration;
 			desired_robot_velocity->linear.y = (human_msg->point.y + yOffset - dis_y - desired_robot_position->point.y)/time_duration;
 			desired_robot_velocity->linear.z = (human_msg->point.z + zOffset - dis_z - desired_robot_position->point.z)/time_duration;			
 			std::cout << time_duration << std::endl;
-			if (std::isnan(desired_robot_velocity->linear.x)){
-				std::cout << "Time duration limit exceeded" << std::endl;
-				std::cout << time_duration << std::endl;
-			}
 			// std::cout << *desired_robot_velocity << std::endl;
 		}
 	}

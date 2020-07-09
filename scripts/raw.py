@@ -6,6 +6,7 @@ from visualization_msgs.msg import Marker
 
 import sys
 import numpy as np
+import random
 
 def main():
 	rospy.init_node("points_extraction_from_yaml")
@@ -36,12 +37,40 @@ def main():
 	start = False
 	samples = 0
 	count = 0
-	# raw_input()
 	start = False
 
+	# x = list(np.linspace(0.25, 0.45, 50))
+	# x.extend(np.linspace(0.45, 0.25, 50))
+	# x.extend(np.linspace(0.25, 0.45, 50))
+	# x.extend(np.linspace(0.45, 0.25, 50))
+	# x.extend(np.linspace(0.25, 0.45, 50))
+	# x.extend(np.linspace(0.45, 0.25, 50))
+
+	# y = [0.116 for i in range(len(x))]
+	# z = [0.05 for i in range(len(x))]
+	# rospy.sleep(0.5)
+	# for i in range(len(x)):
+	# 	point = PointStamped()
+	# 	# if i==0:
+	# 	# 	point.header.stamp = rospy.Time.now()
+	# 	# else:
+	# 	# 	point.header.stamp = rospy.Time(timestamp.to_sec() + sleep_rate)
+	# 	point.header.stamp = rospy.Time.now()
+	# 	timestamp = point.header.stamp
+	# 	point.point.x = x[i]
+	# 	point.point.y = y[i]
+	# 	point.point.z = z[i]
+	# 	pub.publish(point)
+	# 	sleep_rate = (random.random()+0.02)*0.08/1.02
+	# 	print (sleep_rate)
+	# 	# rospy.sleep(10) if i == 0 else rospy.sleep(sleep_rate)
+	# 	rospy.sleep(10) if i == 0 else rospy.sleep(0.047)
+	# rospy.loginfo("Published all the points")
+		
 	file = open(sys.argv[1], 'r')
 	fl = file.readlines()
 	points = Keypoint3d_list()
+	sleep_times = []
 	for i in xrange(len(fl)):
 		if "RWrist" in fl[i]:
 			keypoint = Keypoint3d()
@@ -59,9 +88,10 @@ def main():
 
 			try:
 				rospy.sleep(time_point - times[-1])
+				sleep_times.append(time_point - times[-1])
 			except Exception as e:
 				rospy.loginfo(e)
-
+			# rospy.sleep(0.047)
 			times.append(time_point)
 			if init_point:
 				count += 1
@@ -95,11 +125,12 @@ def main():
 						point.point.z = keypoint.points.point.z
 						pub.publish(point)
 						sleep_rate = times[-1]-times[-2]
+						print (sleep_rate)
 						rospy.loginfo('Published %dth point and gonna wait for %f secs'%(count, sleep_rate))
 						if std_x <= 0.01 and std_y <= 0.01:
 							rospy.loginfo('Motion Ended')
 							break	
-
+	rospy.loginfo('Mean value of sleep rates: %f'%np.mean(sleep_times))
 	rospy.loginfo('Total ellapsed time: %f'%(times[-1]-times[0]))
 
 
