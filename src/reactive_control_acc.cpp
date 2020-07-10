@@ -24,17 +24,16 @@ void human_motion_callback(const geometry_msgs::PointStampedConstPtr human_msg){
 		init_x = human_msg->point.x + xOffset;
 		init_y = human_msg->point.y + yOffset;
 		init_z = human_msg->point.z + zOffset;
-		time_init = ros::Time::now().toSec();
+		time_init = human_msg->header.stamp.toSec();
 	}
 	else{
 		if (count == 1){
-			start_time = ros::Time::now().toSec();
+			start_time = human_msg->header.stamp.toSec();
 			dis_x = human_msg->point.x + xOffset - init_x;
 			dis_y = human_msg->point.y + yOffset - init_y;
 			dis_z = human_msg->point.z + zOffset - init_z;
 		}
 		timenow = ros::Time::now();
-		keypoint_time = ros::Time::now();
 		robot_state->header.stamp = timenow;
 		state_pub_low_f.publish(*robot_state);
 		
@@ -45,6 +44,7 @@ void human_motion_callback(const geometry_msgs::PointStampedConstPtr human_msg){
 		dis_pub.publish(dis);
 		marker_robot->points.push_back(robot_state->pose.position);
 		init_point = true;
+		keypoint_time = human_msg->header.stamp;
 		if (count == 1){
 			time_duration = keypoint_time.toSec() - time_init;
 			if (time_duration != 0){
@@ -77,7 +77,7 @@ void human_motion_callback(const geometry_msgs::PointStampedConstPtr human_msg){
 	desired_robot_position->point.x = human_msg->point.x + xOffset - dis_x;
 	desired_robot_position->point.y = human_msg->point.y + yOffset - dis_y;
 	desired_robot_position->point.z = human_msg->point.z + zOffset - dis_z;
-	desired_robot_position->header.stamp = ros::Time::now();
+	desired_robot_position->header.stamp = desired_robot_position->header.stamp;
 
 	control_points_pub.publish(*desired_robot_position);
 	marker_human->header.stamp = ros::Time::now();
@@ -116,7 +116,6 @@ void state_callback (const trajectory_execution_msgs::PoseTwist::ConstPtr state_
 	robot_velocity->twist.linear.y = state_msg->twist.linear.y;
 	robot_velocity->twist.linear.z = state_msg->twist.linear.z;
 	robot_velocity->header.stamp = ros::Time::now();
-
 
 	if (received_point){
 		if (count == 1){

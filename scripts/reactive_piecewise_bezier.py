@@ -182,7 +182,7 @@ def movement_detection_node():
 	pub_all = rospy.Publisher("trajectory_points_all", Point, queue_size=10)	
 	# sub = rospy.Subscriber("raw_points", Point, callback)
 	# sub = rospy.Subscriber("raw_points_online", Keypoint3d_list, callback)
-	sub = rospy.Subscriber("raw_points", Keypoint3d_list, callback)
+	sub = rospy.Subscriber("raw_points_online", Keypoint3d_list, callback)
 	rospy.spin()
 
 

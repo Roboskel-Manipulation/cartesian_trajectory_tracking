@@ -9,8 +9,8 @@
 	<arg name="trajectory_file" default="/home/ttsitos/Desktop/yaml_files/fast_gpu/cloudy_day/raw_yaml/md_arrow_n.yaml"/>
 
 	<group if="$(arg case_piecewise)">
-		<node name="raw_read_node" type="raw_read.py" pkg="reactive_control" args="$(arg trajectory_file)" output="log" respawn="false">
-		</node>
+<!-- 		<node name="raw_read_node" type="raw_read.py" pkg="reactive_control" args="$(arg trajectory_file)" output="log" respawn="false">
+		</node> -->
 	
 		 <node name="piecewise_bezier_constructor" type="reactive_piecewise_bezier.py" pkg="reactive_control" respawn="false" output="log">
 		</node> 
@@ -32,11 +32,11 @@
 		</node>
 	</group>
 
-<!-- 	<include file="$(find reactive_control)/launch/reactive_control_launch.launch">
+	<include file="$(find reactive_control)/launch/reactive_control_launch.launch">
 	</include>
- -->	
-	<include file="$(find reactive_control)/launch/reactive_control_acc_launch.launch">
-	</include>
+	
+<!-- 	<include file="$(find reactive_control)/launch/reactive_control_acc_launch.launch">
+	</include> -->
 
 	<group if="$(arg sim)">
 		<include file="$(find manos_gazebo)/launch/manos_gazebo.launch">
