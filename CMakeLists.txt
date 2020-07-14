@@ -39,3 +39,6 @@ target_link_libraries (reactive_control ${catkin_LIBRARIES})
 
 add_executable (reactive_control_acc src/reactive_control_acc.cpp)
 target_link_libraries (reactive_control_acc ${catkin_LIBRARIES})
+
+add_executable (raw_input src/raw_input.cpp)
+target_link_libraries (raw_input ${catkin_LIBRARIES})
