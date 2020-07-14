@@ -77,7 +77,7 @@ void human_motion_callback(const geometry_msgs::PointStampedConstPtr human_msg){
 	desired_robot_position->point.x = human_msg->point.x + xOffset - dis_x;
 	desired_robot_position->point.y = human_msg->point.y + yOffset - dis_y;
 	desired_robot_position->point.z = human_msg->point.z + zOffset - dis_z;
-	desired_robot_position->header.stamp = desired_robot_position->header.stamp;
+	desired_robot_position->header.stamp = human_msg->header.stamp;
 
 	control_points_pub.publish(*desired_robot_position);
 	marker_human->header.stamp = ros::Time::now();

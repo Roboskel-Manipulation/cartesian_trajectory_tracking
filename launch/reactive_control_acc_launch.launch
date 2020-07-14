@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <launch>
-	<node name="reactive_control_node" type="reactive_control_acc" pkg="reactive_control" respawn="false" output="log">
+	<node name="reactive_control_node" type="reactive_control_acc" pkg="reactive_control" respawn="false" output="screen">
 		<rosparam file="$(find reactive_control)/config/reactive_params.yaml"/>
 	</node>
 </launch>

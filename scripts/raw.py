@@ -7,6 +7,7 @@ from visualization_msgs.msg import Marker
 import sys
 import numpy as np
 import random
+import matplotlib.pyplot as plt
 
 def main():
 	rospy.init_node("points_extraction_from_yaml")
@@ -71,6 +72,8 @@ def main():
 	fl = file.readlines()
 	points = Keypoint3d_list()
 	sleep_times = []
+	points, times_now, times_yaml = [], [], []
+	sleep_times_now = []
 	for i in xrange(len(fl)):
 		if "RWrist" in fl[i]:
 			keypoint = Keypoint3d()
@@ -79,6 +82,16 @@ def main():
 			keypoint.points.point.y = float(fl[i+10][11:])
 			keypoint.points.point.z = float(fl[i+11][11:])
 			time_point = float(fl[i+5][16:-1] + '.' + fl[i+6][17:].replace(' ', '0'))
+			
+			try:
+				rospy.sleep(time_point - times[-1])
+				sleep_times_now.append(rospy.Time.now().to_sec() - times_now[-1])
+				sleep_times.append(time_point - times[-1])
+				rospy.loginfo("Slept for %f secs"%(time_point-times[-1]))
+			except Exception as e:
+				rospy.logwarn(e)
+			times.append(time_point)
+
 			if len(x) == 0 or (abs(x[-1]-keypoint.points.point.x) < 0.1 and abs(y[-1]-keypoint.points.point.y) < 0.1 and abs(z[-1]-keypoint.points.point.z) < 0.1):
 				x.append(keypoint.points.point.x)
 				y.append(keypoint.points.point.y)
@@ -86,28 +99,24 @@ def main():
 			else:
 				continue
 
-			try:
-				rospy.sleep(time_point - times[-1])
-				sleep_times.append(time_point - times[-1])
-			except Exception as e:
-				rospy.loginfo(e)
-			# rospy.sleep(0.047)
-			times.append(time_point)
 			if init_point:
 				count += 1
 				init_point = False
 				rospy.sleep(0.5)
 				rospy.loginfo('Waiting 10 secs so that the end effector can reach the starting point')
 				point = PointStamped()
-				point.header.stamp = rospy.Time(time_point)
+				point.header.stamp = rospy.Time.now()
 				point.point.x = keypoint.points.point.x
 				point.point.y = keypoint.points.point.y
 				point.point.z = keypoint.points.point.z
 				pub.publish(point)
+				points.append(point.point.x)
+				times_now.append(point.header.stamp.to_sec())
+				times_yaml.append(time_point)
 				rospy.sleep(10)
 			else:
 				if len(x) >= 2:
-					if len(x) == 30:
+					if len(x) == 25:
 						x.pop(0)
 						y.pop(0)
 						z.pop(0)
@@ -119,20 +128,47 @@ def main():
 					if start:
 						count += 1
 						point = PointStamped()
-						point.header.stamp = rospy.Time(time_point)
+						point.header.stamp = rospy.Time.now()
 						point.point.x = keypoint.points.point.x
 						point.point.y = keypoint.points.point.y
 						point.point.z = keypoint.points.point.z
 						pub.publish(point)
-						sleep_rate = times[-1]-times[-2]
-						print (sleep_rate)
-						rospy.loginfo('Published %dth point and gonna wait for %f secs'%(count, sleep_rate))
+						points.append(point.point.x)
+						times_now.append(point.header.stamp.to_sec())
+						times_yaml.append(time_point)
+						# rospy.loginfo('Published %dth point and gonna wait for %f secs'%(count, sleep_rate))
 						if std_x <= 0.01 and std_y <= 0.01:
 							rospy.loginfo('Motion Ended')
-							break	
+							break
+	
 	rospy.loginfo('Mean value of sleep rates: %f'%np.mean(sleep_times))
 	rospy.loginfo('Total ellapsed time: %f'%(times[-1]-times[0]))
 
+	del times_now[0]
+	del times_yaml[0]
+	del points[0]
+	times_now = [i-times_now[0] for i in times_now]
+	times_yaml = [i-times_yaml[0] for i in times_yaml]
+
+	# Plot x(t)
+	fig = plt.figure()
+	ax = plt.axes()
+	ax.scatter(times_now, points, s=20, label='Openpose points - NOW')
+	ax.scatter(times_yaml, points, s=20, label='Openpose points')
+	ax.set_xlabel('time(s)')
+	ax.set_ylabel('x(m)')
+	ax.grid()
+	ax.legend()
+
+	fig = plt.figure()
+	ax = plt.axes()
+	ax.scatter(np.linspace(0, len(sleep_times), len(sleep_times)), sleep_times, label='Sleep times')
+	ax.scatter(np.linspace(0, len(sleep_times_now), len(sleep_times_now)), sleep_times_now, label='Sleep times - NOW')
+	ax.set_xlabel('time(s)')
+	ax.set_ylabel('x(m)')
+	ax.grid()
+	ax.legend()
+	plt.show()
 
 main()
 
