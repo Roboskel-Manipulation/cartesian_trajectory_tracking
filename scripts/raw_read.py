@@ -9,7 +9,7 @@ from scipy.spatial import distance
 
 def main():
 	rospy.init_node("points_extraction_from_yaml")
-	pub = rospy.Publisher("raw_points", Keypoint3d_list, queue_size=100)
+	pub = rospy.Publisher("raw_points_online", Keypoint3d_list, queue_size=100)
 	pubRaw = rospy.Publisher("vis_raw", Marker, queue_size=100)
 	xRaw, yRaw, zRaw = [], [], []
 	x, y, z = [], [], []

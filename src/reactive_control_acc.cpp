@@ -63,11 +63,12 @@ void human_motion_callback(const geometry_msgs::PointStampedConstPtr human_msg){
 			}
 			else{
 				ROS_INFO("Valid time duration");
+				desired_robot_velocity->linear.x = (human_msg->point.x + xOffset - dis_x - desired_robot_position->point.x)/time_duration;
+				desired_robot_velocity->linear.y = (human_msg->point.y + yOffset - dis_y - desired_robot_position->point.y)/time_duration;
+				desired_robot_velocity->linear.z = (human_msg->point.z + zOffset - dis_z - desired_robot_position->point.z)/time_duration;			
+				std::cout << time_duration << std::endl;
+				des_acc_pub.publish(*desired_robot_velocity);
 			}
-			desired_robot_velocity->linear.x = (human_msg->point.x + xOffset - dis_x - desired_robot_position->point.x)/time_duration;
-			desired_robot_velocity->linear.y = (human_msg->point.y + yOffset - dis_y - desired_robot_position->point.y)/time_duration;
-			desired_robot_velocity->linear.z = (human_msg->point.z + zOffset - dis_z - desired_robot_position->point.z)/time_duration;			
-			std::cout << time_duration << std::endl;
 			// std::cout << *desired_robot_velocity << std::endl;
 		}
 	}
@@ -78,6 +79,7 @@ void human_motion_callback(const geometry_msgs::PointStampedConstPtr human_msg){
 	desired_robot_position->point.y = human_msg->point.y + yOffset - dis_y;
 	desired_robot_position->point.z = human_msg->point.z + zOffset - dis_z;
 	desired_robot_position->header.stamp = human_msg->header.stamp;
+	// desired_robot_position->header.stamp = desired_robot_position->header.stamp;
 
 	control_points_pub.publish(*desired_robot_position);
 	marker_human->header.stamp = ros::Time::now();
@@ -235,7 +237,7 @@ int main(int argc, char** argv){
 	control_points_pub = n.advertise<geometry_msgs::PointStamped>("trajectory_points_stamp", 100);	
 	vel_pub = n.advertise<geometry_msgs::Twist>("vel_topic", 100);
 	acc_pub = n.advertise<geometry_msgs::Accel>("acc_topic", 100);
-	
+	des_acc_pub = n.advertise<geometry_msgs::Twist>("des_acc_topic", 100);
 	ros::Subscriber sub = n.subscribe(ee_state_topic, 100, state_callback);
 	ros::Subscriber sub2 = n.subscribe("/trajectory_points", 100, human_motion_callback);
 	
