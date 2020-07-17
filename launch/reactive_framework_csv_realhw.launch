@@ -29,7 +29,7 @@
 	</group>
 
 	<group if="$(arg case_raw)">
-		<node name="raw_input_node" type="raw.py" pkg="reactive_control" output="log" respawn="false" args="$(arg trajectory_file)">
+		<node name="raw_input_node" type="raw.py" pkg="reactive_control" output="screen" respawn="false" args="$(arg trajectory_file)">
 		</node>
 	</group>
 

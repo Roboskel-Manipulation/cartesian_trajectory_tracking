@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import rospy
 from geometry_msgs.msg import PointStamped
+from trajectory_execution_msgs.msg import PointStampedArray
 from keypoint_3d_matching_msgs.msg import *
 from visualization_msgs.msg import Marker
 
@@ -106,7 +107,7 @@ def main():
 
 				
 	# 		time_last = time_point_now
-	# 		# points.append(keypoint.points.point.x)
+	# 		# points.append(keypoint.points.poinx.x)
 	# 		# times.append(time_point)
 	# 		# times_now.append(np.float64(time_point_now))
 	# 		# time2 = rospy.Time.now().to_sec()
@@ -136,7 +137,7 @@ def main():
 	# ax[1].set_xlabel('Samples(N)')
 	# ax[1].set_ylabel('times(s)')
 	# ax[1].grid()
-
+	points_debug = PointStampedArray()
 	for i in xrange(len(fl)):
 		if "RWrist" in fl[i]:
 			keypoint = Keypoint3d()
@@ -145,7 +146,7 @@ def main():
 			keypoint.points.point.y = float(fl[i+10][11:])
 			keypoint.points.point.z = float(fl[i+11][11:])
 			time_point = float(fl[i+5][16:-1] + '.' + fl[i+6][17:].replace(' ', '0'))
-			
+
 			try:
 				rospy.sleep(time_point - times[-1])
 				sleep_times_now.append(rospy.Time.now().to_sec() - times_now[-1])
@@ -173,6 +174,7 @@ def main():
 				point.point.y = keypoint.points.point.y
 				point.point.z = keypoint.points.point.z
 				pub.publish(point)
+				points_debug.points.append(point)
 				points.append(point.point.x)
 				times_now.append(point.header.stamp.to_sec())
 				times_yaml.append(time_point)
@@ -196,13 +198,14 @@ def main():
 						point.point.y = keypoint.points.point.y
 						point.point.z = keypoint.points.point.z
 						pub.publish(point)
+						points_debug.points.append(point)
 						points.append(point.point.x)
 						times_now.append(point.header.stamp.to_sec())
 						times_yaml.append(time_point)
 						# rospy.loginfo('Published %dth point and gonna wait for %f secs'%(count, sleep_rate))
 						if std_x <= 0.01 and std_y <= 0.01:
 							rospy.loginfo('Motion Ended')
-							break
+							# break
 	
 	rospy.loginfo('Mean value of sleep rates: %f'%np.mean(sleep_times))
 	rospy.loginfo('Total ellapsed time: %f'%(times[-1]-times[0]))
@@ -232,6 +235,12 @@ def main():
 	# ax.grid()
 	# ax.legend()
 	plt.show()
+
+	for i in range(len(points_debug.points)):
+		print (points_debug.points[i])
+
+
+
 
 main()
 

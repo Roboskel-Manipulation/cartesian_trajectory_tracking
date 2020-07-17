@@ -1,13 +1,12 @@
 #include "reactive_control/reactive_control.h"
 #include <bits/stdc++.h>
 
-float dis_points, dis_x, dis_y, dis_z;
+float dis_points;
 float Ka, Kb, min_dis, max_dis, Ka_exp, Kb_exp, c;
 bool exp_flag;
 std_msgs::Float64MultiArray gain_array;
 geometry_msgs::Twist vel_check;
 std_msgs::Float64 dis_all, dis_max;
-float Dx, Dy, Dz;
 float x_error, y_error, z_error;
 geometry_msgs::Quaternion robot_orientation_des, robot_orientation;
 
@@ -168,11 +167,6 @@ void state_callback (const trajectory_execution_msgs::PoseTwist::ConstPtr state_
 			// ROS_INFO("Dx = %f", Dx);
 			// ROS_INFO("Dy = %f", Dy);
 			// ROS_INFO("Dz = %f", Dz);
-			if (not var){
-				Dx = D;
-				Dy = D;
-				Dz = D;
-			}
 
 			tf::quaternionMsgToTF(robot_orientation, quat);
 			tf::Matrix3x3(quat).getRPY(roll, pitch, yaw);
@@ -180,9 +174,9 @@ void state_callback (const trajectory_execution_msgs::PoseTwist::ConstPtr state_
 			// std::cout << roll << " " << pitch << " " << yaw << std::endl;
 			// std::cout << roll_des << " " << pitch_des << " " << yaw_des << std::endl;
 
-			vel_control->linear.x = D*(desired_robot_position->point.x - robot_state->pose.position.x);
-			vel_control->linear.y = D*(desired_robot_position->point.y - robot_state->pose.position.y);
-			vel_control->linear.z = D*(desired_robot_position->point.z - robot_state->pose.position.z);
+			vel_control->linear.x = Dx*(desired_robot_position->point.x - robot_state->pose.position.x);
+			vel_control->linear.y = Dy*(desired_robot_position->point.y - robot_state->pose.position.y);
+			vel_control->linear.z = Dz*(desired_robot_position->point.z - robot_state->pose.position.z);
 			vel_control->angular.x = 0;
 			vel_control->angular.y = 0;
 			vel_control->angular.z = 0;
@@ -210,7 +204,9 @@ int main(int argc, char** argv){
 	safe_vel_control->linear.x = 0;
 	safe_vel_control->linear.y = 0;
 	safe_vel_control->linear.z = 0;
-	n.param("reactive_control_node/D", D, 0.0f);
+	n.param("reactive_control_node/Dx", Dx, 0.0f);
+	n.param("reactive_control_node/Dy", Dy, 0.0f);
+	n.param("reactive_control_node/Dz", Dz, 0.0f);
 	n.param("reactive_control_node/xOffset", xOffset, 0.0f);
 	n.param("reactive_control_node/yOffset", yOffset, 0.0f);
 	n.param("reactive_control_node/zOffset", zOffset, 0.0f);
@@ -250,7 +246,7 @@ int main(int argc, char** argv){
     marker_robot->color.b = 1.0f;
     marker_robot->color.a = 1.0;
   	marker_robot->lifetime = ros::Duration(100);
-  
+
   	if (sim){
   		ee_state_topic = "/manos_cartesian_velocity_controller_sim/ee_state";
   		ee_vel_command_topic = "/manos_cartesian_velocity_controller_sim/command_cart_vel";	
