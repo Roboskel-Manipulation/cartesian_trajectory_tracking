@@ -8,15 +8,19 @@ float euclidean_distance (std::shared_ptr<std::vector<float>> v1, std::shared_pt
 	return sqrt(temp);
 }
 
+
+// Callback for human 3D coordinates
 void human_motion_callback(const geometry_msgs::PointConstPtr human_msg){
 	ROS_INFO("Received point");
 	received_point = true;
 
+	// Use first point as initial goal 
 	if (count == 0){
 		init_x = human_msg->x + xOffset;
 		init_y = human_msg->y + yOffset;
 		init_z = human_msg->z + zOffset;
 	}
+	// Debugging
 	else{
 		timenow = ros::Time::now();
 		desired_robot_position->header.stamp = timenow;
@@ -34,10 +38,8 @@ void human_motion_callback(const geometry_msgs::PointConstPtr human_msg){
 	}
 
 	count += 1;
-	// desired_robot_position->point.x = human_msg->keypoints[i].points.point.x + 0.6;
-	// desired_robot_position->point.y = human_msg->keypoints[i].points.point.y + 0.5;
-	// desired_robot_position->point.z = human_msg->keypoints[i].points.point.z;
-	// desired_robot_position->header.stamp = human_msg->keypoints[i].points.header.stamp;
+
+	// Compute goal state for the ee
 	desired_robot_position->point.x = human_msg->x + xOffset;
 	desired_robot_position->point.y = human_msg->y + yOffset;
 	temp_z = human_msg->z;
@@ -48,13 +50,13 @@ void human_motion_callback(const geometry_msgs::PointConstPtr human_msg){
 		desired_robot_position->point.z = human_msg->z + zOffset;		
 	}
 	desired_robot_position->header.stamp = ros::Time::now();
-	marker_human->header.stamp = ros::Time::now();
 	
-	// marker_human->ns = "human";
-	// marker_human->id = 0;
+	// Visualize human trail in Rviz
+	marker_human->header.stamp = ros::Time::now();
     marker_human->points.push_back(desired_robot_position->point);
   	vis_human_pub.publish(*marker_human);
-	// std::cout << count << std::endl;	
+
+  	// Compute variable gain D
 	if (var){
 		v1->push_back(robot_state->point.x);
 		v1->push_back(robot_state->point.y);
@@ -68,6 +70,8 @@ void human_motion_callback(const geometry_msgs::PointConstPtr human_msg){
 	}
 }
 
+
+// Callback for ee state
 void state_callback (const trajectory_execution_msgs::PoseTwist::ConstPtr state_msg){
 	robot_state->point.x = state_msg->pose.position.x;
 	robot_state->point.y = state_msg->pose.position.y;
@@ -76,6 +80,7 @@ void state_callback (const trajectory_execution_msgs::PoseTwist::ConstPtr state_
 
 	if (received_point){
 		if (count == 1){
+			// Publish velocity to reach the initial trajectory point
 			vel_control->linear.x = (desired_robot_position->point.x - robot_state->point.x);
 			vel_control->linear.y = (desired_robot_position->point.y - robot_state->point.y);
 			vel_control->linear.z = (desired_robot_position->point.z - robot_state->point.z);
@@ -85,6 +90,7 @@ void state_callback (const trajectory_execution_msgs::PoseTwist::ConstPtr state_
 			pub.publish(*vel_control);
 		}
 		else{
+			// Publish desired velocity for mimicing
 			vel_control->linear.x = D*(desired_robot_position->point.x - robot_state->point.x);
 			vel_control->linear.y = D*(desired_robot_position->point.y - robot_state->point.y);
 			vel_control->linear.z = D*(desired_robot_position->point.z - robot_state->point.z);
