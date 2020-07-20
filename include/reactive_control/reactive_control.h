@@ -16,8 +16,11 @@
 #include <memory>
 #include <math.h>
 
+#define VEL_X_MAX 0.5
+#define VEL_Y_MAX 0.5
+#define VEL_Z_MAX 0.5
 
-ros::Publisher des_vel_pub, des_pos_pub, pub, com_vel_pub, com_acc_pub, gain_pub, state_pub_high_f, state_pub_low_f, vis_human_pub, vis_robot_pub, dis_pub, dis_all_pub, dis_max_pub, control_points_pub;
+ros::Publisher sim_robot_vel_check_pub, real_vel_pub, des_vel_pub, des_pos_pub, pub, com_vel_pub, com_acc_pub, gain_pub, state_pub_high_f, state_pub_low_f, vis_human_pub, vis_robot_pub, dis_pub, dis_all_pub, dis_max_pub, control_points_pub;
 
 // std::shared_ptr<trajectory_execution_msgs::PoseTwist> robot_state = boost::make_shared<trajectory_execution_msgs::PoseTwist>();
 geometry_msgs::PointStampedPtr desired_robot_position = boost::make_shared<geometry_msgs::PointStamped>();

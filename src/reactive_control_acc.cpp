@@ -1,5 +1,8 @@
 #include "reactive_control/reactive_control.h"
+#include <geometry_msgs/Vector3.h>
 
+bool vel_flag = false;
+geometry_msgs::Vector3 v;
 
 float euclidean_distance (std::shared_ptr<std::vector<float>> v1, std::shared_ptr<std::vector<float>> v2){
 	float temp = 0;
@@ -105,16 +108,33 @@ void human_motion_callback(const geometry_msgs::PointStampedConstPtr human_msg){
 }
 
 void state_callback (const trajectory_execution_msgs::PoseTwist::ConstPtr state_msg){
+	
+	if (vel_flag){
+		vel_duration = ros::Time::now().toSec() - robot_velocity->header.stamp.toSec();
+		ROS_INFO("The duration is: %f", vel_duration);
+		robot_velocity->twist.linear.x = (state_msg->pose.position.x - robot_state->pose.position.x)/vel_duration;
+		robot_velocity->twist.linear.y = (state_msg->pose.position.y - robot_state->pose.position.y)/vel_duration;
+		robot_velocity->twist.linear.z = (state_msg->pose.position.z - robot_state->pose.position.z)/vel_duration;
+		robot_velocity->header.stamp = ros::Time::now();
+
+		// robot_velocity->twist.linear.x = state_msg->twist.linear.x;
+		// robot_velocity->twist.linear.y = state_msg->twist.linear.y;
+		// robot_velocity->twist.linear.z = state_msg->twist.linear.z;
+
+		// robot_velocity->twist.linear.x = 0;
+		// robot_velocity->twist.linear.y = 0;
+		// robot_velocity->twist.linear.z = 0;
+		robot_velocity->header.stamp = ros::Time::now();
+		real_vel_pub.publish(*robot_velocity);
+	}
+
+	if (not vel_flag)
+		vel_flag = true;
+
 	robot_state->pose.position.x = state_msg->pose.position.x;
 	robot_state->pose.position.y = state_msg->pose.position.y;
 	robot_state->pose.position.z = state_msg->pose.position.z;
 	robot_state->header.stamp = ros::Time::now();
-
-	vel_duration = ros::Time::now().toSec() - robot_velocity->header.stamp.toSec();
-	robot_velocity->twist.linear.x = state_msg->twist.linear.x;
-	robot_velocity->twist.linear.y = state_msg->twist.linear.y;
-	robot_velocity->twist.linear.z = state_msg->twist.linear.z;
-	robot_velocity->header.stamp = ros::Time::now();
 
 	if (received_point){
 		if (count == 1){
@@ -151,7 +171,25 @@ void state_callback (const trajectory_execution_msgs::PoseTwist::ConstPtr state_
 			vel_control->linear.x = robot_velocity->twist.linear.x + acc[0]*vel_duration;
 			vel_control->linear.y = robot_velocity->twist.linear.y + acc[1]*vel_duration;
 			vel_control->linear.z = robot_velocity->twist.linear.z + acc[2]*vel_duration;
-			// std::cout << *vel_control << std::endl;
+
+			// vel_control->linear.x = acc[0]*vel_duration;
+			// vel_control->linear.y = acc[1]*vel_duration;
+			// vel_control->linear.z = acc[2]*vel_duration;
+			
+			if (vel_control->linear.x > VEL_X_MAX or vel_control->linear.y > VEL_Y_MAX or vel_control->linear.z > VEL_Z_MAX){
+				vel_control->linear.x = 0;
+				vel_control->linear.y = 0;
+				vel_control->linear.z = 0;
+			}
+			// v.x = acc[0]*vel_duration;
+			// v.y = acc[1]*vel_duration;
+			// v.z = acc[2]*vel_duration;
+			// sim_robot_vel_check_pub.publish(v);
+
+			// vel_control->linear.x = robot_velocity->twist.linear.x + acc[0]*vel_duration;
+			// vel_control->linear.y = robot_velocity->twist.linear.y + acc[1]*vel_duration;
+			// vel_control->linear.z = robot_velocity->twist.linear.z + acc[2]*vel_duration;
+			std::cout << *vel_control << std::endl;
 			pub.publish(*vel_control);
 		}
 		if (abs(robot_state->pose.position.x - init_x) < 0.005
@@ -160,9 +198,8 @@ void state_callback (const trajectory_execution_msgs::PoseTwist::ConstPtr state_
 		 and not init_point){
 		 	ROS_INFO("Reached the first point");
 		}
-		if (init_point){
+		if (init_point)
 			state_pub_high_f.publish(*state_msg);
-		}
 	}
 }
 
@@ -220,6 +257,10 @@ int main(int argc, char** argv){
   	desired_robot_velocity->linear.x = 0;
 	desired_robot_velocity->linear.y = 0;
   	desired_robot_velocity->linear.z = 0;
+
+  	vel_control->linear.x = 0;
+  	vel_control->linear.y = 0;
+  	vel_control->linear.z = 0;
   	acc.resize(3);
 
   	if (sim){
@@ -243,7 +284,9 @@ int main(int argc, char** argv){
 	com_acc_pub = n.advertise<geometry_msgs::Accel>("com_acc_topic", 100);
 	des_pos_pub = n.advertise<geometry_msgs::PointStamped>("des_pos_topic", 100);
 	des_vel_pub = n.advertise<geometry_msgs::Twist>("des_vel_topic", 100);
-	
+	real_vel_pub = n.advertise<geometry_msgs::TwistStamped>("real_vel_topic", 100);
+	sim_robot_vel_check_pub = n.advertise<geometry_msgs::Vector3>("sim_robot_check_topic", 100);
+
 	ros::Subscriber sub = n.subscribe(ee_state_topic, 100, state_callback);
 	ros::Subscriber sub2 = n.subscribe("/trajectory_points", 100, human_motion_callback);
 	

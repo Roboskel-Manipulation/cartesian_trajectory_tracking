@@ -17,10 +17,12 @@ def state_callback(msg):
 		timestamp = msg.header.stamp
 	else:
 		try:
+			time_duration = msg.header.stamp.to_sec() - timestamp.to_sec()
+			rospy.loginfo("The time duration is %f"%time_duration)
 			derived_vel = Twist()
-			derived_vel.linear.x = (msg.pose.position.x - pose.position.x)/(msg.header.stamp.to_sec() - timestamp.to_sec())
-			derived_vel.linear.y = (msg.pose.position.y - pose.position.y)/(msg.header.stamp.to_sec() - timestamp.to_sec())
-			derived_vel.linear.z = (msg.pose.position.z - pose.position.z)/(msg.header.stamp.to_sec() - timestamp.to_sec())
+			derived_vel.linear.x = (msg.pose.position.x - pose.position.x)/time_duration
+			derived_vel.linear.y = (msg.pose.position.y - pose.position.y)/time_duration
+			derived_vel.linear.z = (msg.pose.position.z - pose.position.z)/time_duration
 			vel_pub.publish(derived_vel)
 			rospy.loginfo("Published derived velocity")
 			pose = Pose()
