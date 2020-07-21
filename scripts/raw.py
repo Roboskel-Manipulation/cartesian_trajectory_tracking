@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import rospy
 from geometry_msgs.msg import PointStamped
-from trajectory_execution_msgs.msg import PointStampedArray
+# from trajectory_execution_msgs.msg import PointStampedArray
 from keypoint_3d_matching_msgs.msg import *
 from visualization_msgs.msg import Marker
 
@@ -137,8 +137,13 @@ def main():
 	# ax[1].set_xlabel('Samples(N)')
 	# ax[1].set_ylabel('times(s)')
 	# ax[1].grid()
-	points_debug = PointStampedArray()
+	# points_debug = PointStampedArray()
 	for i in xrange(len(fl)):
+		if i==len(fl)-1:
+			while 1:
+				rospy.sleep(0.047)
+				point.header.stamp = rospy.Time.now()
+				pub.publish(point)
 		if "RWrist" in fl[i]:
 			keypoint = Keypoint3d()
 			keypoint.name = "RWrist"
@@ -174,7 +179,7 @@ def main():
 				point.point.y = keypoint.points.point.y
 				point.point.z = keypoint.points.point.z
 				pub.publish(point)
-				points_debug.points.append(point)
+				# points_debug.points.append(point)
 				points.append(point.point.x)
 				times_now.append(point.header.stamp.to_sec())
 				times_yaml.append(time_point)
@@ -198,7 +203,7 @@ def main():
 						point.point.y = keypoint.points.point.y
 						point.point.z = keypoint.points.point.z
 						pub.publish(point)
-						points_debug.points.append(point)
+						# points_debug.points.append(point)
 						points.append(point.point.x)
 						times_now.append(point.header.stamp.to_sec())
 						times_yaml.append(time_point)
@@ -236,8 +241,8 @@ def main():
 	# ax.legend()
 	plt.show()
 
-	for i in range(len(points_debug.points)):
-		print (points_debug.points[i])
+	# for i in range(len(points_debug.points)):
+		# print (points_debug.points[i])
 
 
 

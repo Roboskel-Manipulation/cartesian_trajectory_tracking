@@ -39,8 +39,12 @@
 	</group>
 
 	<group unless="$(arg single_intergrator)">
-		<include file="$(find reactive_control)/launch/reactive_control_acc_launch.launch">
+	<include file="$(find reactive_control)/launch/reactive_control_acc_launch.launch">
 		</include>
+
+<!-- 		<include file="$(find reactive_control)/launch/reactive_control_triple_integration_launch.launch">
+		</include> -->
+
 	</group>
 
 	<group if="$(arg sim)">
