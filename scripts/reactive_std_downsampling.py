@@ -142,7 +142,7 @@ def movement_detection_node():
 	rospy.init_node("movement_detection_downsampling_node")
 	print ("Started node")
 	pub = rospy.Publisher("trajectory_points", PointStamped, queue_size=10, latch=True)
-	sub = rospy.Subscriber("raw_points", Keypoint3d_list, callback)
+	sub = rospy.Subscriber("raw_points_online", Keypoint3d_list, callback)
 	rospy.spin()
 
 
