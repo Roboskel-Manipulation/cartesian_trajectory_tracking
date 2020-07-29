@@ -34,17 +34,20 @@ include_directories(
 )
 
 
-add_executable (reactive_control src/reactive_control.cpp)
-target_link_libraries (reactive_control ${catkin_LIBRARIES})
+add_executable (reactive_control_single_integrator src/reactive_control_single_integrator.cpp)
+target_link_libraries (reactive_control_single_integrator ${catkin_LIBRARIES})
 
-add_executable (reactive_control_acc src/reactive_control_acc.cpp)
-target_link_libraries (reactive_control_acc ${catkin_LIBRARIES})
+add_executable (reactive_control_double_integrator_sim src/reactive_control_double_integrator_sim.cpp)
+target_link_libraries (reactive_control_double_integrator_sim ${catkin_LIBRARIES})
+
+add_executable (reactive_control_double_integrator_realhw src/reactive_control_double_integrator_realhw.cpp)
+target_link_libraries (reactive_control_double_integrator_realhw ${catkin_LIBRARIES})
 
 add_executable (raw_input src/raw_input.cpp)
 target_link_libraries (raw_input ${catkin_LIBRARIES})
 
-add_executable (reactive_control_triple_integration src/reactive_control_triple_integration.cpp)
-target_link_libraries (reactive_control_triple_integration ${catkin_LIBRARIES})
+add_executable (reactive_control_triple_integrator src/reactive_control_triple_integrator.cpp)
+target_link_libraries (reactive_control_triple_integrator ${catkin_LIBRARIES})
 
 add_executable (check_delay src/check_delay.cpp)
 target_link_libraries (check_delay ${catkin_LIBRARIES})

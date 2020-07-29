@@ -1,5 +1,4 @@
 #include "reactive_control/reactive_control.h"
-#include <bits/stdc++.h>
 
 float dis_points;
 float Ka, Kb, min_dis, max_dis, Ka_exp, Kb_exp, c;

@@ -1,0 +1,31 @@
+# Static gain
+Dx: 5
+Dy: 5
+Dz: 5
+
+# Offsets for robot workspace
+xOffset: 0.6
+yOffset: 0.4
+zOffset: 0
+
+# Offset for desired robot distance
+xGoal: 0.0
+yGoal: 0.0
+zGoal: 0.0
+
+# Var gain
+var: false
+var_gain: 0.2
+
+# Parameters for exponential gain
+exp_flag: true
+Ka: 10
+Kb: 30
+min_dis: 0.0
+max_dis: 0.2
+Ka_exp: 30
+Kb_exp: 34
+c: 0
+
+# sim or real HW
+sim: true

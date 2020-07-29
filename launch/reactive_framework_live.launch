@@ -2,7 +2,9 @@
 <launch>
 
 	<arg name="case_piecewise" default="false"/>
-	<arg name="case_downsampling" default="false"/>	
+	<arg name="case_downsampling" default="false"/>
+	<arg name="case_raw" default="false"/>
+	<arg name="SI" default="true"/>
 	<arg name="sim" default="false"/>
 	<arg name="live_camera" default="true"/>	
 	
@@ -28,8 +30,19 @@
 		</node>
 	</group>
 
+	<group if="$(arg case_raw)">
+		<remap from="raw_points_online" to="trajectory_points"/>
+	</group>
 
-	<include file="$(find reactive_control)/launch/reactive_control_launch.launch">
-	</include>
+	<group if="$(arg SI)">
+		<include file="$(find reactive_control)/launch/reactive_control_single_integrator.launch">
+		</include>
+	</group>
+
+	<group unless="$(arg SI)">
+		<include file="$(find reactive_control)/launch/reactive_control_double_integrator_realhw.launch">
+			<arg name="sim" default="false"/>
+		</include>
+	</group>
 
 </launch>
