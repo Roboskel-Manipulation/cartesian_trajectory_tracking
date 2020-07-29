@@ -19,6 +19,7 @@ float euclidean_distance (std::shared_ptr<std::vector<float>> v1, std::shared_pt
 
 void human_motion_callback(const geometry_msgs::PointStampedConstPtr human_msg){
 	received_point = true;
+	// ROS_INFO("Received point");
 	if (count == 0){
 		init_x = human_msg->point.x + xOffset;
 		init_y = human_msg->point.y + yOffset;
@@ -122,6 +123,8 @@ void state_callback (const trajectory_execution_msgs::PoseTwist::ConstPtr state_
 	robot_state->pose.position.z = state_msg->pose.position.z;
 	robot_state->header.stamp = ros::Time::now();
 
+	vel_duration = robot_state->header.stamp.toSec() - robot_velocity->header.stamp.toSec();
+
 	robot_velocity->twist.linear.x = state_msg->twist.linear.x;
 	robot_velocity->twist.linear.y = state_msg->twist.linear.y;
 	robot_velocity->twist.linear.z = state_msg->twist.linear.z;
@@ -202,6 +205,7 @@ void state_callback (const trajectory_execution_msgs::PoseTwist::ConstPtr state_
 
 			if (!std::isnan(vel_control->linear.x) and !std::isnan(vel_control->linear.y) and !std::isnan(vel_control->linear.y)){
 				ROS_INFO("Valid commanded velocity");
+				ROS_INFO("The control time cycle is %f", vel_duration);
 				std::cout << *vel_control << std::endl;
 				pub.publish(*vel_control);
 			}

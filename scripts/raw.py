@@ -139,11 +139,11 @@ def main():
 	# ax[1].grid()
 	# points_debug = PointStampedArray()
 	for i in xrange(len(fl)):
-		# if i==len(fl)-1:
-		# 	while 1:
-		# 		rospy.sleep(0.047)
-		# 		point.header.stamp = rospy.Time.now()
-		# 		pub.publish(point)
+		if i==len(fl)-1:
+			while 1:
+				rospy.sleep(0.047)
+				point.header.stamp = rospy.Time.now()
+				pub.publish(point)
 		if "RWrist" in fl[i]:
 			keypoint = Keypoint3d()
 			keypoint.name = "RWrist"

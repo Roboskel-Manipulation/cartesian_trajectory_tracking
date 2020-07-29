@@ -55,6 +55,7 @@ def callback(data):
 		point.point.x = x_tmp
 		point.point.y = y_tmp
 		point.point.z = z_tmp
+		point.header.stamp = rospy.Time.now()
 		init_x = x_tmp
 		init_y = y_tmp
 		init_z = z_tmp
@@ -129,6 +130,7 @@ def callback(data):
 										point.point.x = x[i]
 										point.point.y = y[i]
 										point.point.z = z[i]
+										point.header.stamp = rospy.Time.now()
 										if i==1:
 											point.point.z = z[i] + 10
 										else:
@@ -143,6 +145,7 @@ def callback(data):
 													point.point.x = (1-j)*init_x + j*x[i]
 													point.point.y = (1-j)*init_y + j*y[i]
 													point.point.z = (1-j)*init_z + j*z[i]
+													point.header.stamp = rospy.Time.now()
 													pub.publish(point)
 													rospy.sleep(0.001)
 										else:
