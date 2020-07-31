@@ -43,6 +43,9 @@ target_link_libraries (reactive_control_double_integrator_sim ${catkin_LIBRARIES
 add_executable (reactive_control_double_integrator_realhw src/reactive_control_double_integrator_realhw.cpp)
 target_link_libraries (reactive_control_double_integrator_realhw ${catkin_LIBRARIES})
 
+add_executable (reactive_control_quat_feedback src/reactive_control_quat_feedback.cpp)
+target_link_libraries (reactive_control_quat_feedback ${catkin_LIBRARIES})
+
 add_executable (raw_input src/raw_input.cpp)
 target_link_libraries (raw_input ${catkin_LIBRARIES})
 
