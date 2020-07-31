@@ -4,15 +4,8 @@ float dis_points;
 float Ka, Kb, min_dis, max_dis, Ka_exp, Kb_exp, c;
 bool exp_flag;
 std_msgs::Float64MultiArray gain_array;
-geometry_msgs::Twist vel_check;
 std_msgs::Float64 dis_all, dis_max;
 float x_error, y_error, z_error;
-geometry_msgs::Quaternion robot_orientation_des, robot_orientation;
-
-tf::Quaternion quat, quat_des;
-double roll_des, pitch_des, yaw_des;
-double roll, pitch, yaw;
-
 
 
 float euclidean_distance (std::shared_ptr<std::vector<float>> v1, std::shared_ptr<std::vector<float>> v2){
@@ -37,12 +30,6 @@ void human_motion_callback(const geometry_msgs::PointStampedConstPtr human_msg){
 			dis_x = human_msg->point.x + xOffset - init_x;
 			dis_y = human_msg->point.y + yOffset - init_y;
 			dis_z = human_msg->point.z + zOffset - init_z;
-			robot_orientation_des.x = robot_orientation.x;
-			robot_orientation_des.y = robot_orientation.y;
-			robot_orientation_des.z = robot_orientation.z;
-			robot_orientation_des.w = robot_orientation.w;
-			tf::quaternionMsgToTF(robot_orientation_des, quat_des);
-			tf::Matrix3x3(quat_des).getRPY(roll_des, pitch_des, yaw_des);
 		}
 		timenow = ros::Time::now();
 		desired_robot_position->header.stamp = timenow;
@@ -76,17 +63,10 @@ void human_motion_callback(const geometry_msgs::PointStampedConstPtr human_msg){
 
     marker_human->points.push_back(desired_robot_position->point);
   	vis_human_pub.publish(*marker_human);
-	if (D_v.size() > 1){
-		// std::cout << std::accumulate(D_v.begin(), D_v.end(), 0.0)/D_v.size() << std::endl;
-	}
 
 	if (init_point){
 		end_time = ros::Time::now().toSec();
-		// ROS_INFO("Time elapsed: %f", end_time-start_time);
 	}
-	// ROS_INFO("Count %d", count);
-	// vel_check.linear.x = 0.1;
-	// pub.publish(vel_check);
 }
 
 void state_callback (const trajectory_execution_msgs::PoseTwist::ConstPtr state_msg){
@@ -95,10 +75,6 @@ void state_callback (const trajectory_execution_msgs::PoseTwist::ConstPtr state_
 	robot_state->pose.position.z = state_msg->pose.position.z;
 	robot_state->header.stamp = ros::Time::now();
 
-	robot_orientation.x = state_msg->pose.orientation.x;
-	robot_orientation.y = state_msg->pose.orientation.y;
-	robot_orientation.z = state_msg->pose.orientation.z;
-	robot_orientation.w = state_msg->pose.orientation.w;
 
 	if (received_point){
 		if (count == 1){
@@ -149,29 +125,12 @@ void state_callback (const trajectory_execution_msgs::PoseTwist::ConstPtr state_
 				gain_array.data.push_back(ros::Time::now().toSec());
 				gain_pub.publish(gain_array);
 				gain_array.data.clear();
-				// ROS_INFO("Ka: %f", Ka);
-				// ROS_INFO("Kb: %f", Kb);
-				// ROS_INFO("Ka_exp: %f", Ka_exp);
-				// ROS_INFO("Kb_exp: %f", Kb_exp);
-				// ROS_INFO("min_dis: %f", min_dis);
-				// ROS_INFO("max_dis: %f", max_dis);
 				ROS_INFO("D: %f", D);
 				v1->clear();
 				v2->clear();
 				D_v.push_back(D);
 			}
 
-			// ROS_INFO("The gain is %f", D);
-			// ROS_INFO("The gains are:");
-			// ROS_INFO("Dx = %f", Dx);
-			// ROS_INFO("Dy = %f", Dy);
-			// ROS_INFO("Dz = %f", Dz);
-
-			tf::quaternionMsgToTF(robot_orientation, quat);
-			tf::Matrix3x3(quat).getRPY(roll, pitch, yaw);
-
-			// std::cout << roll << " " << pitch << " " << yaw << std::endl;
-			// std::cout << roll_des << " " << pitch_des << " " << yaw_des << std::endl;
 
 			vel_control->linear.x = Dx*(desired_robot_position->point.x - robot_state->pose.position.x);
 			vel_control->linear.y = Dy*(desired_robot_position->point.y - robot_state->pose.position.y);
