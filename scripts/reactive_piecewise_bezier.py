@@ -28,10 +28,6 @@ init_point = True
 
 def callback(data):
 	global init_point, start_bz_time, init_x, init_y, init_z, second_point, sum_time, count, pub, pub_all, xV_tmp, yV_tmp, zV_tmp, x, y, z, xFinal, yFinal, zFinal, xRaw, yRaw, zRaw, xMov, yMov, zMov, start_threshold, start_flag, end_flag
-	# rospy.loginfo("Received point")
-	# x_tmp = data.point.x
-	# y_tmp = data.point.y
-	# z_tmp = data.point.z
 
 	for i in range(len(data.keypoints)):
 		if (data.keypoints[i].name == "RWrist"):
@@ -48,7 +44,7 @@ def callback(data):
 				xRaw.append(x_tmp)
 				yRaw.append(y_tmp)
 				zRaw.append(z_tmp)
-	# print (x_tmp, y_tmp, z_tmp)
+
 	count += 1
 	if init_point and x_tmp < 0 and x_tmp >= -0.45 and y_tmp < 0 and y_tmp >= -0.45:
 		point = PointStamped()
@@ -64,10 +60,6 @@ def callback(data):
 		second_point = True
 		init_point = False
 
-	if len(x) == 1 and count != 1:
-		# start_bz_time = timestamp
-		pass
-		
 	if not end_flag:
 		if x_tmp != 0 and y_tmp != 0 and z_tmp != 0:
 			if len(xRaw) == 0 or (len(xRaw) >= 1 and abs(xRaw[-1] - x_tmp) < 0.1 and abs(yRaw[-1] - y_tmp) < 0.1 and abs(zRaw[-1] - z_tmp) < 0.1):
@@ -96,12 +88,7 @@ def callback(data):
 							x.append(x_tmp)
 							y.append(y_tmp)
 							z.append(z_tmp)
-							# print (len(x))
 							if len(x) == 4:
-								# for i in range(len(data.keypoints)):
-								# 	if (data.keypoints[i].name == "RWrist"):
-								# 		end_bz_time = data.keypoints[i].points.header.stamp.to_sec()
-								# 		break
 								try:
 									rospy.wait_for_service("trajectory_smoothing")
 									smoothing = rospy.ServiceProxy("trajectory_smoothing", Smoothing)
@@ -117,13 +104,7 @@ def callback(data):
 									xFinal.extend(x)
 									yFinal.extend(y)
 									zFinal.extend(z)
-									# rospy.loginfo(start_bz_time)
-									# rospy.loginfo(end_bz_time)
-									# bz_duration = end_bz_time - start_bz_time
-									
-									# rospy.loginfo("%f"%bz_duration)
 									if len(x) > 1:
-										# pub_rate = bz_duration/(len(x)-1)
 										pub_rate = (3*0.047)/(len(x)-1)
 									for i in xrange(1, len(x)):
 										point = PointStamped()
@@ -131,10 +112,6 @@ def callback(data):
 										point.point.y = y[i]
 										point.point.z = z[i]
 										point.header.stamp = rospy.Time.now()
-										if i==1:
-											point.point.z = z[i] + 10
-										else:
-											point.point.z = z[i]
 										if second_point:
 											second_point = False
 											dis = distance.euclidean([x[i], y[i], z[i]], [init_x, init_y, init_z])
@@ -151,24 +128,11 @@ def callback(data):
 										else:
 											pub.publish(point)
 											rospy.sleep(pub_rate)
-										# pub.publish(point)
-										# rospy.sleep(pub_rate)
-									
-									# for i in xrange(len(x_all)):
-									# 	point = Point()
-									# 	point.x = x_all[i]
-									# 	point.y = y_all[i]
-									# 	point.z = z_all[i]
-									# 	pub_all.publish(point)
-									# 	rospy.sleep(0.0005)									
 									
 									end_time = rospy.get_time()
 									x = [x[-1]]
 									y = [y[-1]]
 									z = [z[-1]]
-									# break
-									# if count-56 > 5:
-									# 	break
 								except rospy.ServiceException, e:
 									rospy.logerr("Service call failed: %s"%e)	
 							if std_x <= 0.01 and std_y <= 0.01 and std_z <= 0.01:
@@ -183,8 +147,6 @@ def movement_detection_node():
 	start_threshold = 24
 	pub = rospy.Publisher("trajectory_points", PointStamped, queue_size=10, latch=True)	
 	pub_all = rospy.Publisher("trajectory_points_all", Point, queue_size=10)	
-	# sub = rospy.Subscriber("raw_points", Point, callback)
-	# sub = rospy.Subscriber("raw_points_online", Keypoint3d_list, callback)
 	sub = rospy.Subscriber("raw_points_online", Keypoint3d_list, callback)
 	rospy.spin()
 
