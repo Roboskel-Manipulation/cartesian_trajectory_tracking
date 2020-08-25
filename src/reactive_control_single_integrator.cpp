@@ -26,13 +26,16 @@ void human_motion_callback(const geometry_msgs::PointStampedConstPtr human_msg){
 	}
 
 	count += 1;
+
+	// Transitions human coordinates - Desired robot coordinates
 	desired_robot_position->point.x = human_msg->point.x + xOffset - dis_x;
 	desired_robot_position->point.y = human_msg->point.y + yOffset - dis_y;
 	desired_robot_position->point.z = human_msg->point.z + zOffset - dis_z;
 	desired_robot_position->header.stamp = ros::Time::now();
-	control_points_pub.publish(*desired_robot_position);
-	marker_human->header.stamp = ros::Time::now();
 
+	control_points_pub.publish(*desired_robot_position);
+	
+	marker_human->header.stamp = ros::Time::now();
     marker_human->points.push_back(desired_robot_position->point);
   	vis_human_pub.publish(*marker_human);
 }
@@ -117,17 +120,21 @@ int main(int argc, char** argv){
 	ros::AsyncSpinner spinner(3);
 	spinner.start();
 
+	// Control gains
 	n.param("reactive_control_node/Dx", Dx, 0.0f);
 	n.param("reactive_control_node/Dy", Dy, 0.0f);
 	n.param("reactive_control_node/Dz", Dz, 0.0f);
 	
+	// Motion transition
 	n.param("reactive_control_node/xOffset", xOffset, 0.0f);
 	n.param("reactive_control_node/yOffset", yOffset, 0.0f);
 	n.param("reactive_control_node/zOffset", zOffset, 0.0f);
 	
+	// Gain flags
 	n.param("reactive_control_node/eucl_flag", eucl_flag, false);
 	n.param("reactive_control_node/D_eucl", D_eucl, 10.0f);
 	
+	// Exponential dynamical field
 	n.param("reactive_control_node/exp_flag", exp_flag, false);	
 	n.param("reactive_control_node/Ka", Ka, 1.0f);	
 	n.param("reactive_control_node/Kb", Kb, 1.0f);	
@@ -137,8 +144,10 @@ int main(int argc, char** argv){
 	n.param("reactive_control_node/max_dis", max_dis, 1.0f);	
 	n.param("reactive_control_node/c", c, 1.0f);
 
+	// Simulation flag
 	n.param("reactive_control_node/sim", sim, true);
 
+	// Human marker - Rviz
 	marker_human->header.frame_id = "base_link";
 	marker_human->type = visualization_msgs::Marker::LINE_STRIP;
 	marker_human->action = visualization_msgs::Marker::ADD;
@@ -151,6 +160,7 @@ int main(int argc, char** argv){
     marker_human->color.a = 1.0;
   	marker_human->lifetime = ros::Duration(100);
 	
+	// Robot marker - Rviz
 	marker_robot->header.frame_id = "base_link";
 	marker_robot->header.stamp = ros::Time::now();
 	marker_robot->type = visualization_msgs::Marker::LINE_STRIP;
@@ -164,6 +174,7 @@ int main(int argc, char** argv){
     marker_robot->color.a = 1.0;
   	marker_robot->lifetime = ros::Duration(100);
 
+  	// Topics according to sim flag
   	if (sim){
   		ee_state_topic = "/manos_cartesian_velocity_controller_sim/ee_state";
   		ee_vel_command_topic = "/manos_cartesian_velocity_controller_sim/command_cart_vel";	
@@ -173,6 +184,7 @@ int main(int argc, char** argv){
   		ee_vel_command_topic = "/manos_cartesian_velocity_controller/command_cart_vel";  		
   	}
 
+  	// Publishers
 	pub = n.advertise<geometry_msgs::Twist>(ee_vel_command_topic, 100);
 	state_pub_high_f = n.advertise<trajectory_execution_msgs::PoseTwist>("/ee_position_high_f", 100);
 	state_pub_low_f = n.advertise<geometry_msgs::PoseStamped>("/ee_position_low_f", 100);
@@ -184,6 +196,7 @@ int main(int argc, char** argv){
 	vis_robot_pub = n.advertise<visualization_msgs::Marker>("/vis_robot_topic", 100);
 	control_points_pub = n.advertise<geometry_msgs::PointStamped>("trajectory_points_stamp", 100);	
 	
+	// Subscribers
 	ros::Subscriber sub = n.subscribe(ee_state_topic, 100, state_callback);
 	ros::Subscriber sub2 = n.subscribe("/trajectory_points", 100, human_motion_callback);
 	
