@@ -1,12 +1,5 @@
 #include "reactive_control/reactive_control_double_integrator.h"
 
-bool vel_flag = false;
-geometry_msgs::Vector3 v;
-geometry_msgs::TwistPtr vel_control_prev = boost::make_shared<geometry_msgs::Twist>();
-geometry_msgs::TwistStampedPtr commanded_twist = boost::make_shared<geometry_msgs::TwistStamped>();
-geometry_msgs::AccelStampedPtr commanded_acc = boost::make_shared<geometry_msgs::AccelStamped>();
-ros::Time time_now;
-
 
 void human_motion_callback(const geometry_msgs::PointStampedConstPtr human_msg){
 	received_point = true;

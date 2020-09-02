@@ -34,17 +34,20 @@ geometry_msgs::TwistPtr vel_control = boost::make_shared<geometry_msgs::Twist>()
 geometry_msgs::TwistPtr safe_vel_control = boost::make_shared<geometry_msgs::Twist>();
 geometry_msgs::TwistPtr vel_command = boost::make_shared<geometry_msgs::Twist>();
 geometry_msgs::AccelPtr acc_command = boost::make_shared<geometry_msgs::Accel>();
+geometry_msgs::TwistPtr vel_control_prev = boost::make_shared<geometry_msgs::Twist>();
+geometry_msgs::TwistStampedPtr commanded_twist = boost::make_shared<geometry_msgs::TwistStamped>();
+geometry_msgs::AccelStampedPtr commanded_acc = boost::make_shared<geometry_msgs::AccelStamped>();
 std::shared_ptr<std::vector<float>> v1 = std::make_shared<std::vector<float>>();
 std::shared_ptr<std::vector<float>> v2 = std::make_shared<std::vector<float>>();
 visualization_msgs::MarkerPtr marker_human = boost::make_shared<visualization_msgs::Marker>();
 visualization_msgs::MarkerPtr marker_robot = boost::make_shared<visualization_msgs::Marker>();
 
-ros::Time timenow;
+ros::Time timenow, time_now;
 
 int count = 0;
 float D, Dx, Dy, Dz, xOffset, yOffset, zOffset, var_gain, xGoal, yGoal, zGoal;
 bool received_point = false;
-bool var, sim, init_point = false;
+bool var, sim, init_point = false, vel_flag=false;
 float init_x, init_y, init_z, temp_z;
 std_msgs::Float64 dis;
 std_msgs::Float64 gain;

@@ -23,4 +23,4 @@ Kb_exp: 34
 c: 0
 
 # sim or real HW
-sim: true
+sim: false

@@ -1,14 +1,4 @@
-#include "reactive_control/reactive_control.h"
-#include <geometry_msgs/Vector3.h>
-#include <geometry_msgs/AccelStamped.h>
-
-
-bool vel_flag = false;
-geometry_msgs::Vector3 v;
-geometry_msgs::TwistPtr vel_control_prev = boost::make_shared<geometry_msgs::Twist>();
-geometry_msgs::TwistStampedPtr commanded_twist = boost::make_shared<geometry_msgs::TwistStamped>();
-geometry_msgs::AccelStampedPtr commanded_acc = boost::make_shared<geometry_msgs::AccelStamped>();
-ros::Time time_now;
+#include "reactive_control/reactive_control_double_integrator.h"
 
 float euclidean_distance (std::shared_ptr<std::vector<float>> v1, std::shared_ptr<std::vector<float>> v2){
 	float temp = 0;
@@ -36,15 +26,14 @@ void human_motion_callback(const geometry_msgs::PointStampedConstPtr human_msg){
 			std::cout << dis_x << dis_y << dis_z << std::endl;
 		}
 		timenow = ros::Time::now();
-		robot_state->header.stamp = timenow;
-		state_pub_low_f.publish(*robot_state);
+		robot_position->header.stamp = timenow;
+		state_pub_low_f.publish(*robot_position);
 		
 		vis_robot_pub.publish(*marker_robot);
-	  	// ROS_INFO("Num of low freq robot state: %d", count);
-		dis.data = sqrt(pow(desired_robot_position->point.x - robot_state->pose.position.x, 2) 
-			+ pow(desired_robot_position->point.y - robot_state->pose.position.y, 2));
+		dis.data = sqrt(pow(desired_robot_position->point.x - robot_position->pose.position.x, 2) 
+			+ pow(desired_robot_position->point.y - robot_position->pose.position.y, 2));
 		dis_pub.publish(dis);
-		marker_robot->points.push_back(robot_state->pose.position);
+		marker_robot->points.push_back(robot_position->pose.position);
 		init_point = true;
 		keypoint_time = human_msg->header.stamp;
 		if (count == 1){
@@ -68,15 +57,14 @@ void human_motion_callback(const geometry_msgs::PointStampedConstPtr human_msg){
 				desired_robot_velocity->linear.x = (human_msg->point.x + xOffset - dis_x - desired_robot_position->point.x)/time_duration;
 				desired_robot_velocity->linear.y = (human_msg->point.y + yOffset - dis_y - desired_robot_position->point.y)/time_duration;
 				desired_robot_velocity->linear.z = (human_msg->point.z + zOffset - dis_z - desired_robot_position->point.z)/time_duration;			
-				// std::cout << time_duration << std::endl;
 				des_vel_pub.publish(*desired_robot_velocity);
 			}
-			// std::cout << *desired_robot_velocity << std::endl;
 		}
 	}
 
 	count += 1;
-	// std::cout << count << std::endl;
+
+	// Transitioned human coordinates - Desired robot coordinates
 	desired_robot_position->point.x = human_msg->point.x + xOffset - dis_x;
 	desired_robot_position->point.y = human_msg->point.y + yOffset - dis_y;
 	desired_robot_position->point.z = human_msg->point.z + zOffset - dis_z;
@@ -90,42 +78,23 @@ void human_motion_callback(const geometry_msgs::PointStampedConstPtr human_msg){
 	human_position->header.stamp = desired_robot_position->header.stamp;
 
 	control_points_pub.publish(*human_position);
-	marker_human->header.stamp = ros::Time::now();
 
+	marker_human->header.stamp = ros::Time::now();
     marker_human->points.push_back(desired_robot_position->point);
   	vis_human_pub.publish(*marker_human);
-	if (var){
-		v1->push_back(robot_state->pose.position.x);
-		v1->push_back(robot_state->pose.position.y);
-		v1->push_back(robot_state->pose.position.z);
-		v2->push_back(desired_robot_position->point.x);
-		v2->push_back(desired_robot_position->point.y);
-		v2->push_back(desired_robot_position->point.z);
-		D = var_gain*euclidean_distance(v1, v2);
-		v1->clear();
-		v2->clear();
-		D_v.push_back(D);
-		if (D_v.size() > 1){
-			std::cout << std::accumulate(D_v.begin(), D_v.end(), 0.0)/D_v.size() << std::endl;
-		}
-	}
-	if (init_point){
-		end_time = ros::Time::now().toSec();
-		// ROS_INFO("Time elapsed: %f", end_time-start_time);
-	}
 }
 
+
 void state_callback (const trajectory_execution_msgs::PoseTwist::ConstPtr state_msg){
-	
+	// Robot position
+	robot_position->pose.position.x = state_msg->pose.position.x;
+	robot_position->pose.position.y = state_msg->pose.position.y;
+	robot_position->pose.position.z = state_msg->pose.position.z;
+	robot_position->header.stamp = ros::Time::now();
 
+	vel_duration = robot_position->header.stamp.toSec() - robot_velocity->header.stamp.toSec();
 
-	robot_state->pose.position.x = state_msg->pose.position.x;
-	robot_state->pose.position.y = state_msg->pose.position.y;
-	robot_state->pose.position.z = state_msg->pose.position.z;
-	robot_state->header.stamp = ros::Time::now();
-
-	vel_duration = robot_state->header.stamp.toSec() - robot_velocity->header.stamp.toSec();
-
+	// Robot velocity
 	robot_velocity->twist.linear.x = state_msg->twist.linear.x;
 	robot_velocity->twist.linear.y = state_msg->twist.linear.y;
 	robot_velocity->twist.linear.z = state_msg->twist.linear.z;
@@ -133,9 +102,9 @@ void state_callback (const trajectory_execution_msgs::PoseTwist::ConstPtr state_
 	
 	if (received_point){
 		if (count == 1){
-			vel_control->linear.x = (desired_robot_position->point.x - robot_state->pose.position.x);
-			vel_control->linear.y = (desired_robot_position->point.y - robot_state->pose.position.y - yGoal);
-			vel_control->linear.z = (desired_robot_position->point.z - robot_state->pose.position.z);
+			vel_control->linear.x = desired_robot_position->point.x - robot_position->pose.position.x;
+			vel_control->linear.y = desired_robot_position->point.y - robot_position->pose.position.y;
+			vel_control->linear.z = desired_robot_position->point.z - robot_position->pose.position.z;
 			vel_control->angular.x = 0;
 			vel_control->angular.y = 0;
 			vel_control->angular.z = 0;
@@ -145,19 +114,21 @@ void state_callback (const trajectory_execution_msgs::PoseTwist::ConstPtr state_
 			pub.publish(*vel_control);
 		}
 		else{
-			// std::cout << K << " " << D << std::endl;
 			real_vel_pub.publish(*robot_velocity);
 			
 			time_now = ros::Time::now();
-			vel_command->linear.x = desired_robot_position->point.x - robot_state->pose.position.x;
-			vel_command->linear.y = desired_robot_position->point.y - robot_state->pose.position.y - yGoal;
-			vel_command->linear.z = desired_robot_position->point.z - robot_state->pose.position.z;
+
+			// Velocity component
+			vel_command->linear.x = desired_robot_position->point.x - robot_position->pose.position.x;
+			vel_command->linear.y = desired_robot_position->point.y - robot_position->pose.position.y;
+			vel_command->linear.z = desired_robot_position->point.z - robot_position->pose.position.z;
 			commanded_twist->twist.linear.x = vel_command->linear.x;
 			commanded_twist->twist.linear.y = vel_command->linear.y;
 			commanded_twist->twist.linear.z = vel_command->linear.z;
 			commanded_twist->header.stamp = time_now;
 			com_vel_pub.publish(*commanded_twist);
 
+			// Acceleration component
 			acc_command->linear.x = desired_robot_velocity->linear.x - robot_velocity->twist.linear.x;
 			acc_command->linear.y = desired_robot_velocity->linear.y - robot_velocity->twist.linear.y;
 			acc_command->linear.z = desired_robot_velocity->linear.z - robot_velocity->twist.linear.z;
@@ -167,22 +138,17 @@ void state_callback (const trajectory_execution_msgs::PoseTwist::ConstPtr state_
 			commanded_acc->header.stamp = time_now;
 			com_acc_pub.publish(*commanded_acc);
 
-			// acc[0] = Kx*(acc_command->linear.x) + Dx*(vel_command->linear.x);
-			// acc[1] = Ky*(acc_command->linear.y) + Dy*(vel_command->linear.y);
-			// acc[2] = Kz*(acc_command->linear.z) + Dz*(vel_command->linear.z);
-
+			// Commanded acceleration
 			acc[0] = Kx*acc_command->linear.x + Dx*vel_command->linear.x;
 			acc[1] = Ky*acc_command->linear.y + Dy*vel_command->linear.y;
 			acc[2] = Kz*acc_command->linear.z + Dz*vel_command->linear.z;
-			// std::cout << "The commanded velocities are\n" << *vel_command << std::endl;
-				
 
-			// std::cout << "The commanded accalerations are\n" << *acc_command << std::endl;
 			
 			vel_control_prev->linear.x = vel_control->linear.x;
 			vel_control_prev->linear.y = vel_control->linear.y;
 			vel_control_prev->linear.z = vel_control->linear.z;
 
+			// Commanded velocity
 			vel_control->linear.x += acc[0]*vel_duration;
 			vel_control->linear.y += acc[1]*vel_duration;
 			vel_control->linear.z += acc[2]*vel_duration;
@@ -190,26 +156,7 @@ void state_callback (const trajectory_execution_msgs::PoseTwist::ConstPtr state_
 			vel_control->linear.x = abs(vel_control->linear.x) > VEL_X_MAX ? vel_control->linear.x/2.0 : vel_control->linear.x;
 			vel_control->linear.y = abs(vel_control->linear.y) > VEL_Y_MAX ? vel_control->linear.y/2.0 : vel_control->linear.y;
 			vel_control->linear.z = abs(vel_control->linear.z) > VEL_Z_MAX ? vel_control->linear.z/2.0 : vel_control->linear.z;
-			// vel_control->linear.x = acc[0]*vel_duration;
-			// vel_control->linear.y = acc[1]*vel_duration;
-			// vel_control->linear.z = acc[2]*vel_duration;
 			
-			// if (vel_control->linear.x > VEL_X_MAX or vel_control->linear.y > VEL_Y_MAX or vel_control->linear.z > VEL_Z_MAX){
-			// 	vel_control->linear.x = 0;
-			// 	vel_control->linear.y = 0;
-			// 	vel_control->linear.z = 0;
-			// }
-
-			// v.x = acc[0]*vel_duration;
-			// v.y = acc[1]*vel_duration;
-			// v.z = acc[2]*vel_duration;
-			// sim_robot_vel_check_pub.publish(v);
-
-			// vel_control->linear.x = robot_velocity->twist.linear.x + acc[0]*vel_duration;
-			// vel_control->linear.y = robot_velocity->twist.linear.y + acc[1]*vel_duration;
-			// vel_control->linear.z = robot_velocity->twist.linear.z + acc[2]*vel_duration;
-			// std::cout << *vel_control << std::endl;
-
 			if (!std::isnan(vel_control->linear.x) and !std::isnan(vel_control->linear.y) and !std::isnan(vel_control->linear.y)){
 				ROS_INFO("Valid commanded velocity");
 				ROS_INFO("The control time cycle is %f", vel_duration);
@@ -227,9 +174,9 @@ void state_callback (const trajectory_execution_msgs::PoseTwist::ConstPtr state_
 				vel_control->linear.z = vel_control_prev->linear.z;
 			}
 		}
-		if (abs(robot_state->pose.position.x - init_x) < 0.005
-		 and abs(robot_state->pose.position.y - init_y) < 0.005 
-		 and abs(robot_state->pose.position.z - init_z) < 0.005
+		if (abs(robot_position->pose.position.x - init_x) < 0.005
+		 and abs(robot_position->pose.position.y - init_y) < 0.005 
+		 and abs(robot_position->pose.position.z - init_z) < 0.005
 		 and not init_point)
 		 	ROS_INFO("Reached the first point");
 		
@@ -244,25 +191,21 @@ int main(int argc, char** argv){
 	ros::NodeHandle n;
 	ros::AsyncSpinner spinner(3);
 	spinner.start();
-	safe_vel_control->linear.x = 0;
-	safe_vel_control->linear.y = 0;
-	safe_vel_control->linear.z = 0;
+
+	// Control gains
 	n.param("reactive_control_node/Dx", Dx, 0.0f);
 	n.param("reactive_control_node/Dy", Dy, 0.0f);
 	n.param("reactive_control_node/Dz", Dz, 0.0f);
 	n.param("reactive_control_node/Kx", Kx, 0.0f);
 	n.param("reactive_control_node/Ky", Ky, 0.0f);
 	n.param("reactive_control_node/Kz", Kz, 0.0f);
+	
+	// Motion transition
 	n.param("reactive_control_node/xOffset", xOffset, 0.0f);
 	n.param("reactive_control_node/yOffset", yOffset, 0.0f);
 	n.param("reactive_control_node/zOffset", zOffset, 0.0f);
-	n.param("reactive_control_node/var", var, false);
-	n.param("reactive_control_node/var_gain", var_gain, 10.0f);
-	n.param("reactive_control_node/sim", sim, true);
-	n.param("reactive_control_node/xGoal", xGoal, 0.0f);
-	n.param("reactive_control_node/yGoal", yGoal, 0.0f);
-	n.param("reactive_control_node/zGoal", zGoal, 0.0f);
 
+	// Human marker - Rviz
 	marker_human->header.frame_id = "base_link";
 	marker_human->type = visualization_msgs::Marker::LINE_STRIP;
 	marker_human->action = visualization_msgs::Marker::ADD;
@@ -275,6 +218,7 @@ int main(int argc, char** argv){
     marker_human->color.a = 1.0;
   	marker_human->lifetime = ros::Duration(100);
 	
+	// Robot marker - Rviz
 	marker_robot->header.frame_id = "base_link";
 	marker_robot->header.stamp = ros::Time::now();
 	marker_robot->type = visualization_msgs::Marker::LINE_STRIP;
@@ -289,24 +233,13 @@ int main(int argc, char** argv){
   	marker_robot->lifetime = ros::Duration(100);
   	
 
-  	desired_robot_velocity->linear.x = 0;
-	desired_robot_velocity->linear.y = 0;
-  	desired_robot_velocity->linear.z = 0;
-
-  	vel_control->linear.x = 0;
-  	vel_control->linear.y = 0;
-  	vel_control->linear.z = 0;
   	acc.resize(3);
 
-  	if (sim){
-  		ee_state_topic = "/manos_cartesian_velocity_controller_sim/ee_state";
-  		ee_vel_command_topic = "/manos_cartesian_velocity_controller_sim/command_cart_vel";	
-  	}
-  	else{
-  		ee_state_topic = "/manos_cartesian_velocity_controller/ee_state";
-  		ee_vel_command_topic = "/manos_cartesian_velocity_controller/command_cart_vel";  		
-  	}
+  	// Topic names
+	ee_state_topic = "/manos_cartesian_velocity_controller/ee_state";
+	ee_vel_command_topic = "/manos_cartesian_velocity_controller/command_cart_vel";  		
 
+	// Publishers
 	pub = n.advertise<geometry_msgs::Twist>(ee_vel_command_topic, 100);
 	state_pub_high_f = n.advertise<trajectory_execution_msgs::PoseTwist>("/ee_position_high_f", 100);
 	state_pub_low_f = n.advertise<geometry_msgs::PoseStamped>("/ee_position_low_f", 100);
@@ -322,6 +255,7 @@ int main(int argc, char** argv){
 	real_vel_pub = n.advertise<geometry_msgs::TwistStamped>("real_vel_topic", 100);
 	sim_robot_vel_check_pub = n.advertise<geometry_msgs::Vector3>("sim_robot_check_topic", 100);
 
+	// Subscribers
 	ros::Subscriber sub = n.subscribe(ee_state_topic, 100, state_callback);
 	ros::Subscriber sub2 = n.subscribe("/trajectory_points", 100, human_motion_callback);
 	
