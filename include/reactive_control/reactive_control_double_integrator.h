@@ -18,9 +18,9 @@
 #include <memory>
 #include <math.h>
 
-#define VEL_X_MAX 0.4
-#define VEL_Y_MAX 0.4
-#define VEL_Z_MAX 0.4
+#define VEL_X_MAX 1
+#define VEL_Y_MAX 1
+#define VEL_Z_MAX 1
 #define VEL_X_MAX_INIT 0.08
 #define VEL_Y_MAX_INIT 0.08
 #define VEL_Z_MAX_INIT 0.08
