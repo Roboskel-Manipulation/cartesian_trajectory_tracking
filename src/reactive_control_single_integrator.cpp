@@ -55,6 +55,10 @@ void state_callback (const trajectory_execution_msgs::PoseTwist::ConstPtr state_
 			vel_control->angular.x = 0;
 			vel_control->angular.y = 0;
 			vel_control->angular.z = 0;
+			vel_control->linear.x = abs(vel_control->linear.x) > VEL_X_MAX_INIT ? VEL_X_MAX_INIT*vel_control->linear.x/abs(vel_control->linear.x) : vel_control->linear.x;
+			vel_control->linear.y = abs(vel_control->linear.y) > VEL_Y_MAX_INIT ? VEL_Y_MAX_INIT*vel_control->linear.y/abs(vel_control->linear.y) : vel_control->linear.y;
+			vel_control->linear.z = abs(vel_control->linear.z) > VEL_Z_MAX_INIT ? VEL_Z_MAX_INIT*vel_control->linear.z/abs(vel_control->linear.z) : vel_control->linear.z;
+			std::cout << *vel_control << std::endl;
 			pub.publish(*vel_control);
 		}
 		else{
@@ -100,7 +104,6 @@ void state_callback (const trajectory_execution_msgs::PoseTwist::ConstPtr state_
 			vel_control->angular.y = 0;
 			vel_control->angular.z = 0;
 			pub.publish(*vel_control);
-			std::cout << *vel_control << std::endl;
 		}
 		if (abs(robot_pose->pose.position.x - init_x) < 0.005
 		 and abs(robot_pose->pose.position.y - init_y) < 0.005 

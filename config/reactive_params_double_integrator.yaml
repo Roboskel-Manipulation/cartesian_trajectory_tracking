@@ -1,12 +1,12 @@
 # Static gain
-Dx: 1
-Dy: 1
-Dz: 1
-Kx: 3
-Ky: 3
-Kz: 3
+Dx: 40
+Dy: 40
+Dz: 40
+Kx: 30
+Ky: 30
+Kz: 30
 
 # Offsets for robot workspace
 xOffset: 0.6
-yOffset: 0.4
+yOffset: 0.45
 zOffset: 0.0

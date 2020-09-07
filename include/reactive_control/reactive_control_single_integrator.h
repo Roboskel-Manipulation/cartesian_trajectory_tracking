@@ -16,9 +16,9 @@
 #define VEL_X_MAX 0.4
 #define VEL_Y_MAX 0.4
 #define VEL_Z_MAX 0.4
-#define VEL_X_MAX_INIT 0.08
-#define VEL_Y_MAX_INIT 0.08
-#define VEL_Z_MAX_INIT 0.08
+#define VEL_X_MAX_INIT 0.1
+#define VEL_Y_MAX_INIT 0.1
+#define VEL_Z_MAX_INIT 0.1
 
 ros::Publisher pub, gain_pub, state_pub_high_f, state_pub_low_f, vis_human_pub, vis_robot_pub, dis_pub, dis_all_pub, dis_max_pub, control_points_pub;
 

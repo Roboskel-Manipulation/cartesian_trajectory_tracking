@@ -108,9 +108,9 @@ void state_callback (const trajectory_execution_msgs::PoseTwist::ConstPtr state_
 			vel_control->angular.x = 0;
 			vel_control->angular.y = 0;
 			vel_control->angular.z = 0;
-			vel_control->linear.x = abs(vel_control->linear.x) > VEL_X_MAX_INIT ? vel_control->linear.x/2.0 : vel_control->linear.x;
-			vel_control->linear.y = abs(vel_control->linear.y) > VEL_Y_MAX_INIT ? vel_control->linear.y/2.0 : vel_control->linear.y;
-			vel_control->linear.z = abs(vel_control->linear.z) > VEL_Z_MAX_INIT ? vel_control->linear.z/2.0 : vel_control->linear.z;
+			vel_control->linear.x = abs(vel_control->linear.x) > VEL_X_MAX_INIT ? VEL_X_MAX_INIT*abs(vel_control->linear.x)/vel_control->linear.x : vel_control->linear.x;
+			vel_control->linear.y = abs(vel_control->linear.y) > VEL_Y_MAX_INIT ? VEL_Y_MAX_INIT*abs(vel_control->linear.y)/vel_control->linear.y : vel_control->linear.y;
+			vel_control->linear.z = abs(vel_control->linear.z) > VEL_Z_MAX_INIT ? VEL_Z_MAX_INIT*abs(vel_control->linear.z)/vel_control->linear.z : vel_control->linear.z;
 			pub.publish(*vel_control);
 		}
 		else{
@@ -153,9 +153,9 @@ void state_callback (const trajectory_execution_msgs::PoseTwist::ConstPtr state_
 			vel_control->linear.y += acc[1]*vel_duration;
 			vel_control->linear.z += acc[2]*vel_duration;
 
-			vel_control->linear.x = abs(vel_control->linear.x) > VEL_X_MAX ? vel_control->linear.x/2.0 : vel_control->linear.x;
-			vel_control->linear.y = abs(vel_control->linear.y) > VEL_Y_MAX ? vel_control->linear.y/2.0 : vel_control->linear.y;
-			vel_control->linear.z = abs(vel_control->linear.z) > VEL_Z_MAX ? vel_control->linear.z/2.0 : vel_control->linear.z;
+			// vel_control->linear.x = abs(vel_control->linear.x) > VEL_X_MAX ? VEL_X_MAX*abs(vel_control->linear.x)/vel_control->linear.x : vel_control->linear.x;
+			// vel_control->linear.y = abs(vel_control->linear.y) > VEL_Y_MAX ? VEL_Y_MAX*abs(vel_control->linear.y)/vel_control->linear.y : vel_control->linear.y;
+			// vel_control->linear.z = abs(vel_control->linear.z) > VEL_Z_MAX ? VEL_Z_MAX*abs(vel_control->linear.z)/vel_control->linear.z : vel_control->linear.z;
 			
 			if (!std::isnan(vel_control->linear.x) and !std::isnan(vel_control->linear.y) and !std::isnan(vel_control->linear.y)){
 				ROS_INFO("Valid commanded velocity");

@@ -10,7 +10,7 @@ from scipy.spatial import distance
 def main():
 	rospy.init_node("points_extraction_from_yaml")
 	# pub = rospy.Publisher("raw_points_online", Keypoint3d_list, queue_size=100)
-	pub = rospy.Publisher("trajectory_points", PointStamped, queue_size=100)
+	pub = rospy.Publisher("trajectory_points", PointStamped, queue_size=100, latch=True)
 	pubRaw = rospy.Publisher("vis_raw", Marker, queue_size=100)
 	xRaw, yRaw, zRaw = [], [], []
 	x, y, z = [], [], []
@@ -87,8 +87,8 @@ def main():
 				if first_point:
 					rospy.sleep(0.2)
 					rospy.loginfo("Published first point")
-					rospy.loginfo("Waiting 5 secs")
-					rospy.sleep(5)
+					rospy.loginfo("Waiting 10 secs")
+					rospy.sleep(10)
 					start_time = rospy.get_time()
 					first_point = False
 				else:
