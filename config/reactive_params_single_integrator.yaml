@@ -5,7 +5,7 @@ Dz: 2
 
 # Offsets for robot workspace
 xOffset: 0.6
-yOffset: 0.4
+yOffset: 0.5
 zOffset: 0.0
 
 # Euclidean distance gain
