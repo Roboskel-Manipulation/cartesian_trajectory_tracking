@@ -39,9 +39,17 @@ void human_motion_callback(const geometry_msgs::PointStampedConstPtr human_msg){
 		if (count == 1){
 			time_duration = keypoint_time.toSec() - time_init;
 			if (time_duration != 0){
-				desired_robot_velocity->linear.x = (human_msg->point.x + xOffset - dis_x - init_x)/time_duration;
-				desired_robot_velocity->linear.y = (human_msg->point.y + yOffset - dis_x - init_y)/time_duration;
-				desired_robot_velocity->linear.z = (human_msg->point.z + zOffset - dis_x - init_z)/time_duration;
+				if (human_vel){
+					desired_robot_velocity->twist.linear.x = (human_msg->point.x + xOffset - dis_x - init_x)/time_duration;
+					desired_robot_velocity->twist.linear.y = (human_msg->point.y + yOffset - dis_x - init_y)/time_duration;
+					desired_robot_velocity->twist.linear.z = (human_msg->point.z + zOffset - dis_x - init_z)/time_duration;
+				}
+				else{
+					desired_robot_velocity->twist.linear.x = 0;
+					desired_robot_velocity->twist.linear.y = 0;
+					desired_robot_velocity->twist.linear.z = 0;
+				}
+				desired_robot_velocity->header.stamp = ros::Time::now();
 			}
 		}
 		else{
@@ -54,9 +62,18 @@ void human_motion_callback(const geometry_msgs::PointStampedConstPtr human_msg){
 			}
 			else{
 				ROS_INFO("Valid time duration");
-				desired_robot_velocity->linear.x = (human_msg->point.x + xOffset - dis_x - desired_robot_position->point.x)/time_duration;
-				desired_robot_velocity->linear.y = (human_msg->point.y + yOffset - dis_y - desired_robot_position->point.y)/time_duration;
-				desired_robot_velocity->linear.z = (human_msg->point.z + zOffset - dis_z - desired_robot_position->point.z)/time_duration;			
+				ROS_INFO("Time duration: %f", time_duration);
+				if (human_vel){
+					desired_robot_velocity->twist.linear.x = (human_msg->point.x + xOffset - dis_x - init_x)/time_duration;
+					desired_robot_velocity->twist.linear.y = (human_msg->point.y + yOffset - dis_x - init_y)/time_duration;
+					desired_robot_velocity->twist.linear.z = (human_msg->point.z + zOffset - dis_x - init_z)/time_duration;
+				}
+				else{
+					desired_robot_velocity->twist.linear.x = 0;
+					desired_robot_velocity->twist.linear.y = 0;
+					desired_robot_velocity->twist.linear.z = 0;
+				}
+				desired_robot_velocity->header.stamp = ros::Time::now();
 				des_vel_pub.publish(*desired_robot_velocity);
 			}
 		}
@@ -69,7 +86,7 @@ void human_motion_callback(const geometry_msgs::PointStampedConstPtr human_msg){
 	desired_robot_position->point.y = human_msg->point.y + yOffset - dis_y;
 	desired_robot_position->point.z = human_msg->point.z + zOffset - dis_z;
 	desired_robot_position->header.stamp = human_msg->header.stamp;
-	desired_robot_position->header.stamp = ros::Time::now();
+	// desired_robot_position->header.stamp = ros::Time::now();
 	des_pos_pub.publish(*desired_robot_position);
 
 	human_position->point.x = desired_robot_position->point.x;
@@ -129,14 +146,20 @@ void state_callback (const trajectory_execution_msgs::PoseTwist::ConstPtr state_
 			com_vel_pub.publish(*commanded_twist);
 
 			// Acceleration component
-			acc_command->linear.x = desired_robot_velocity->linear.x - robot_velocity->twist.linear.x;
-			acc_command->linear.y = desired_robot_velocity->linear.y - robot_velocity->twist.linear.y;
-			acc_command->linear.z = desired_robot_velocity->linear.z - robot_velocity->twist.linear.z;
+			ROS_INFO("Velocities: %f, %f", desired_robot_velocity->twist.linear.x, robot_velocity->twist.linear.x);
+			ROS_INFO("Velocities: %f, %f", desired_robot_velocity->twist.linear.y, robot_velocity->twist.linear.y);
+			ROS_INFO("Velocities: %f, %f", desired_robot_velocity->twist.linear.z, robot_velocity->twist.linear.z);
+			acc_command->linear.x = desired_robot_velocity->twist.linear.x - robot_velocity->twist.linear.x;
+			acc_command->linear.y = desired_robot_velocity->twist.linear.y - robot_velocity->twist.linear.y;
+			acc_command->linear.z = desired_robot_velocity->twist.linear.z - robot_velocity->twist.linear.z;
 			commanded_acc->accel.linear.x = acc_command->linear.x;
 			commanded_acc->accel.linear.y = acc_command->linear.y;
 			commanded_acc->accel.linear.z = acc_command->linear.z;
 			commanded_acc->header.stamp = time_now;
+			robot_velocity->header.stamp = time_now;
 			com_acc_pub.publish(*commanded_acc);
+			real_vel_pub.publish(*robot_velocity);
+
 
 			// Commanded acceleration
 			acc[0] = Kx*acc_command->linear.x + Dx*vel_command->linear.x;
@@ -158,9 +181,10 @@ void state_callback (const trajectory_execution_msgs::PoseTwist::ConstPtr state_
 			// vel_control->linear.z = abs(vel_control->linear.z) > VEL_Z_MAX ? VEL_Z_MAX*abs(vel_control->linear.z)/vel_control->linear.z : vel_control->linear.z;
 			
 			if (!std::isnan(vel_control->linear.x) and !std::isnan(vel_control->linear.y) and !std::isnan(vel_control->linear.y)){
-				ROS_INFO("Valid commanded velocity");
-				ROS_INFO("The control time cycle is %f", vel_duration);
-				std::cout << *vel_control << std::endl;
+				// ROS_INFO("Valid commanded velocity");
+				// ROS_INFO("The control time cycle is %f", vel_duration);
+				// std::cout << *vel_control << std::endl;
+				final_command_pub.publish(*vel_control);
 				pub.publish(*vel_control);
 			}
 			else{
@@ -204,6 +228,9 @@ int main(int argc, char** argv){
 	n.param("reactive_control_node/xOffset", xOffset, 0.0f);
 	n.param("reactive_control_node/yOffset", yOffset, 0.0f);
 	n.param("reactive_control_node/zOffset", zOffset, 0.0f);
+
+	// Human velocity
+	n.param("reactive_control_node/human_vel", human_vel, false);
 
 	// Human marker - Rviz
 	marker_human->header.frame_id = "base_link";
@@ -251,7 +278,8 @@ int main(int argc, char** argv){
 	com_vel_pub = n.advertise<geometry_msgs::TwistStamped>("com_vel_topic", 100);
 	com_acc_pub = n.advertise<geometry_msgs::AccelStamped>("com_acc_topic", 100);
 	des_pos_pub = n.advertise<geometry_msgs::PointStamped>("des_pos_topic", 100);
-	des_vel_pub = n.advertise<geometry_msgs::Twist>("des_vel_topic", 100);
+	des_vel_pub = n.advertise<geometry_msgs::TwistStamped>("des_vel_topic", 100);
+	final_command_pub = n.advertise<geometry_msgs::Twist>("final_command_topic", 100);
 	real_vel_pub = n.advertise<geometry_msgs::TwistStamped>("real_vel_topic", 100);
 	sim_robot_vel_check_pub = n.advertise<geometry_msgs::Vector3>("sim_robot_check_topic", 100);
 

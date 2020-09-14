@@ -2,11 +2,14 @@
 Dx: 40
 Dy: 40
 Dz: 40
-Kx: 30
-Ky: 30
-Kz: 30
+Kx: 10
+Ky: 10
+Kz: 10
 
 # Offsets for robot workspace
 xOffset: 0.6
-yOffset: 0.45
+yOffset: 0.4
 zOffset: 0.0
+
+# Control scheme
+human_vel: false
