@@ -30,12 +30,13 @@ ros::Publisher final_command_pub, sim_robot_vel_check_pub, real_vel_pub, des_vel
 geometry_msgs::PointStampedPtr desired_robot_position = boost::make_shared<geometry_msgs::PointStamped>();
 geometry_msgs::TwistStampedPtr desired_robot_velocity = boost::make_shared<geometry_msgs::TwistStamped>();
 
-geometry_msgs::PoseStampedPtr robot_position = boost::make_shared<geometry_msgs::PoseStamped>();
+geometry_msgs::PoseStampedPtr robot_pose = boost::make_shared<geometry_msgs::PoseStamped>();
 geometry_msgs::TwistStampedPtr robot_velocity = boost::make_shared<geometry_msgs::TwistStamped>();
 
 geometry_msgs::PointStampedPtr human_position = boost::make_shared<geometry_msgs::PointStamped>();
 
 geometry_msgs::TwistPtr vel_control = boost::make_shared<geometry_msgs::Twist>();
+geometry_msgs::TwistStampedPtr  command_control = boost::make_shared<geometry_msgs::TwistStamped>();
 geometry_msgs::TwistPtr safe_vel_control = boost::make_shared<geometry_msgs::Twist>();
 geometry_msgs::TwistPtr vel_command = boost::make_shared<geometry_msgs::Twist>();
 geometry_msgs::AccelPtr acc_command = boost::make_shared<geometry_msgs::Accel>();
@@ -68,3 +69,5 @@ float Kx, Ky, Kz, dis_x, dis_y, dis_z;
 float time_duration, time_init;
 ros::Time keypoint_time;
 ros::Publisher time_pub;
+float self_col_dis, z_dis, extention_dis;
+float des_x, des_y, des_z;

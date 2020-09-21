@@ -1,15 +1,22 @@
 # Static gain
-Dx: 40
-Dy: 40
-Dz: 40
-Kx: 10
-Ky: 10
-Kz: 10
+Dx: 4
+Dy: 2
+Dz: 2
+Kx: 2
+Ky: 2
+Kz: 2
 
 # Offsets for robot workspace
 xOffset: 0.6
 yOffset: 0.4
 zOffset: 0.0
+
+# Self collision distance
+self_col_dis: 0.22
+z_dis: 0.23
+
+# Extention distance
+extention_dis: 0.53 #0.56-0.03
 
 # Control scheme
 human_vel: false
