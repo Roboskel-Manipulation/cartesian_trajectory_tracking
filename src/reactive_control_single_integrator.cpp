@@ -31,6 +31,7 @@ void human_motion_callback(const geometry_msgs::PointStampedConstPtr human_msg){
 			dis_x = human_msg->point.x + xOffset - init_x;
 			dis_y = human_msg->point.y + yOffset - init_y;
 			dis_z = human_msg->point.z + zOffset - init_z;
+			ROS_WARN("The initial distances are %f, %f, %f", dis_x, dis_y, dis_z);
 		}
 		state_pub_low_f.publish(*robot_pose);
 		dis.data = sqrt(pow(desired_robot_position->point.x - robot_pose->pose.position.x, 2) 

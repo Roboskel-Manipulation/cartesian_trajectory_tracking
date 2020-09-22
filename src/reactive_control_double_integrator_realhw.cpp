@@ -37,11 +37,11 @@ void human_motion_callback(const geometry_msgs::PointStampedConstPtr human_msg){
 	}
 	else{
 		if (count == 1){
-			start_time = human_msg->header.stamp.toSec();
+			start_time = human_msg->header.stamp.toNSec();
 			dis_x = human_msg->point.x + xOffset - init_x;
 			dis_y = human_msg->point.y + yOffset - init_y;
 			dis_z = human_msg->point.z + zOffset - init_z;
-			std::cout << dis_x << dis_y << dis_z << std::endl;
+			ROS_WARN("The initial distances are %f, %f, %f", dis_x ,dis_y, dis_z);
 		}
 		timenow = ros::Time::now();
 		// robot_pose->header.stamp = timenow;
@@ -179,12 +179,9 @@ void state_callback (const trajectory_execution_msgs::PoseTwist::ConstPtr state_
 			com_vel_pub.publish(*commanded_twist);
 
 			// Acceleration component
-			ROS_INFO("Velocities: %f, %f", desired_robot_velocity->twist.linear.x, robot_velocity->twist.linear.x);
-			ROS_INFO("Velocities: %f, %f", desired_robot_velocity->twist.linear.y, robot_velocity->twist.linear.y);
-			ROS_INFO("Velocities: %f, %f", desired_robot_velocity->twist.linear.z, robot_velocity->twist.linear.z);
-			acc_command->linear.x = desired_robot_velocity->twist.linear.x - robot_velocity->twist.linear.x;
-			acc_command->linear.y = desired_robot_velocity->twist.linear.y - robot_velocity->twist.linear.y;
-			acc_command->linear.z = desired_robot_velocity->twist.linear.z - robot_velocity->twist.linear.z;
+			acc_command->linear.x = -robot_velocity->twist.linear.x;
+			acc_command->linear.y = -robot_velocity->twist.linear.y;
+			acc_command->linear.z = -robot_velocity->twist.linear.z;
 			commanded_acc->accel.linear.x = acc_command->linear.x;
 			commanded_acc->accel.linear.y = acc_command->linear.y;
 			commanded_acc->accel.linear.z = acc_command->linear.z;
@@ -313,6 +310,7 @@ int main(int argc, char** argv){
 	des_pos_pub = n.advertise<geometry_msgs::PointStamped>("des_pos_topic", 100);
 	des_vel_pub = n.advertise<geometry_msgs::TwistStamped>("des_vel_topic", 100);
 	final_command_pub = n.advertise<geometry_msgs::TwistStamped>("final_command_topic", 100);
+
 	real_vel_pub = n.advertise<geometry_msgs::TwistStamped>("real_vel_topic", 100);
 	sim_robot_vel_check_pub = n.advertise<geometry_msgs::Vector3>("sim_robot_check_topic", 100);
 

@@ -104,4 +104,34 @@ def main():
 	print end_time - start_time
 	print "Published the points"
 
-main()
+
+def main2():
+	rospy.init_node('yaml_read')
+	pub = rospy.Publisher("raw_points_online", Keypoint3d_list, queue_size=10)
+	file = open(sys.argv[1], 'r')
+	fl = file.readlines()
+	times = []
+	rospy.sleep(2)
+	for i in range(len(fl)):
+		point = Keypoint3d_list()
+		if "RW" in fl[i]:
+			keypoint = Keypoint3d()
+			keypoint.name = "RWrist"
+			keypoint.points.header.stamp = rospy.Time(float(fl[i+5][16:-1]+'.'+fl[i+6][17:].replace(' ', '0')))
+			keypoint.points.point.x = float(fl[i+9][11:])
+			keypoint.points.point.y = float(fl[i+10][11:])
+			keypoint.points.point.z = float(fl[i+11][11:])
+			point.keypoints.append(keypoint)
+			pub.publish(point)
+
+			try:
+				rospy.sleep(keypoint.points.header.stamp.to_sec()-times[-1])
+				# rospy.loginfo('Slept for ' + str(times[-1]-keypoint.points.header.stamp.to_sec()))
+			except Exception as ex:
+				rospy.logwarn(ex)
+				rospy.sleep(10)
+			times.append(keypoint.points.header.stamp.to_sec())
+
+	rospy.loginfo("Published all keypoints")
+
+main2()

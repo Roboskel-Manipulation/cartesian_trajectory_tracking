@@ -34,7 +34,7 @@ void human_motion_callback(const geometry_msgs::PointStampedConstPtr human_msg){
 			dis_x = human_msg->point.x + xOffset - init_x;
 			dis_y = human_msg->point.y + yOffset - init_y;
 			dis_z = human_msg->point.z + zOffset - init_z;
-			std::cout << dis_x << " " << dis_y << " " << dis_z << std::endl;
+			ROS_INFO("The initial distances are %f, %f, %f", dis_x ,dis_y, dis_z);
 		}
 		timenow = ros::Time::now();
 		robot_pose->header.stamp = timenow;
@@ -46,6 +46,7 @@ void human_motion_callback(const geometry_msgs::PointStampedConstPtr human_msg){
 		dis_pub.publish(dis);
 		marker_robot->points.push_back(robot_pose->pose.position);
 		init_point = true;
+
 		// keypoint_time = human_msg->header.stamp;
 		// if (count == 1){
 		// 	time_duration = keypoint_time.toSec() - time_init;
@@ -119,7 +120,6 @@ void human_motion_callback(const geometry_msgs::PointStampedConstPtr human_msg){
 		}
 	}
 	// desired_robot_position->header.stamp = ros::Time::now();
-
 }
 
 void state_callback (const trajectory_execution_msgs::PoseTwist::ConstPtr state_msg){

@@ -28,7 +28,6 @@
 ros::Publisher final_command_pub, sim_robot_vel_check_pub, real_vel_pub, des_vel_pub, des_pos_pub, pub, com_vel_pub, com_acc_pub, gain_pub, state_pub_high_f, state_pub_low_f, vis_human_pub, vis_robot_pub, dis_pub, dis_all_pub, dis_max_pub, control_points_pub;
 
 geometry_msgs::PointStampedPtr desired_robot_position = boost::make_shared<geometry_msgs::PointStamped>();
-geometry_msgs::TwistStampedPtr desired_robot_velocity = boost::make_shared<geometry_msgs::TwistStamped>();
 
 geometry_msgs::PoseStampedPtr robot_pose = boost::make_shared<geometry_msgs::PoseStamped>();
 geometry_msgs::TwistStampedPtr robot_velocity = boost::make_shared<geometry_msgs::TwistStamped>();

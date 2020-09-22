@@ -9,9 +9,11 @@ pub = None
 x, y, z = [], [], []
 x_mov, y_mov, z_mov = [], [], []
 init_flag, start = False, False
+count = 0
 
 def callback(msg):
-	global pub, x, y, z, init_flag, x_mov, y_mov, start
+	global pub, x, y, z, init_flag, x_mov, y_mov, start, count
+	count += 1
 	for i in range(len(msg.keypoints)):
 		if msg.keypoints[i].name == "RWrist":
 			x_point = msg.keypoints[i].points.point.x
@@ -59,9 +61,8 @@ def callback(msg):
 			std_x = np.std(x_mov)
 			std_y = np.std(y_mov)
 			std_z = np.std(z_mov)
-			print (std_x, std_y, std_z)
 			if (not start) and (std_x > 0.01 or std_y > 0.01 or std_z > 0.01):
-				rospy.loginfo("Motion started")
+				rospy.loginfo("Motion started at sample %d"%count)
 				start = True
 			if start:
 				point = PointStamped()
