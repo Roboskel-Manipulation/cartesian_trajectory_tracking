@@ -23,11 +23,11 @@ Kb_exp: 34
 c: 0
 
 # Self collision distance
-self_col_dis: 0.22
+self_col_dis: 0.28
 z_dis: 0.23
 
 # Extention distance
-extention_dis: 0.53 #0.56-0.03
+extention_dis: 0.5 #0.56-0.03
 
 # sim or real HW
-sim: true
+sim: false
