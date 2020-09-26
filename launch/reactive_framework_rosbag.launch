@@ -7,15 +7,13 @@
 	<arg name="single_integrator" default="true"/>
 	<arg name="trajectory_file" default="/home/ttsitos/Desktop/yaml_files/fast_gpu/cloudy_day/raw_yaml/md_arrow_n.yaml"/>
 
-<<<<<<< HEAD
-	<group if="$(arg case_raw)">
-		<node name="yaml_read" type="yaml_read.py" pkg="reactive_control" respawn="false" output="screen" args="$(arg trajectory_file)">
-		</node>
-	</group>
-=======
 	<node name="yaml_read" type="yaml_read.py" pkg="reactive_control" respawn="false" output="log" args="$(arg trajectory_file)">
 	</node>
->>>>>>> devel
+	
+	<group if="$(arg case_raw)">
+		<node name="case_raw" type="case_raw.py" pkg="reactive_control" respawn="false" output="log">
+		</node>
+	</group>
 
 	<group if="$(arg case_piecewise)">
 		 <node name="piecewise_bezier_constructor" type="reactive_piecewise_bezier.py" pkg="reactive_control" respawn="false" output="screen">
@@ -30,14 +28,6 @@
 		</node>
 	</group>
 
-<<<<<<< HEAD
-=======
-	<group if="$(arg case_raw)">
-		<node name="raw_points_process" type="case_raw.py" pkg="reactive_control" respawn="false" output="screen">
-		</node>
-	</group>
-
->>>>>>> devel
 	<group if="$(arg single_integrator)">
 		<include file="$(find reactive_control)/launch/reactive_control_single_integrator.launch">
 		</include>

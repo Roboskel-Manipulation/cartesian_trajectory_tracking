@@ -64,7 +64,7 @@ void human_motion_callback(const geometry_msgs::PointStampedConstPtr human_msg){
 			desired_robot_position->point.x = human_msg->point.x + xOffset - dis_x;
 			desired_robot_position->point.y = human_msg->point.y + yOffset - dis_y;
 			desired_robot_position->point.z = human_msg->point.z + zOffset - dis_z;
-			desired_robot_position->header.stamp = human_msg->header.stamp;
+			desired_robot_position->header.stamp = robot_pose->header.stamp;
 
 			control_points_pub.publish(*desired_robot_position);
 
@@ -95,7 +95,7 @@ void state_callback (const trajectory_execution_msgs::PoseTwist::ConstPtr state_
 			vel_control->linear.z = abs(vel_control->linear.z) > VEL_Z_MAX_INIT ? VEL_Z_MAX_INIT*vel_control->linear.z/abs(vel_control->linear.z) : vel_control->linear.z;
 			pub.publish(*vel_control);
 		}
-		else{
+		else if (count != 0){
 			vis_robot_pub.publish(*marker_robot);
 			dis_all.data = sqrt(pow(desired_robot_position->point.x - robot_pose->pose.position.x, 2) 
 				+ pow(desired_robot_position->point.y - robot_pose->pose.position.y, 2));
@@ -145,7 +145,11 @@ void state_callback (const trajectory_execution_msgs::PoseTwist::ConstPtr state_
 			vel_control->angular.x = 0;
 			vel_control->angular.y = 0;
 			vel_control->angular.z = 0;
-			command_pub.publish(*vel_control);
+			command_control->twist.linear.x = vel_control->linear.x;
+			command_control->twist.linear.y = vel_control->linear.y;
+			command_control->twist.linear.z = vel_control->linear.z;
+			command_control->header.stamp = ros::Time::now();
+			command_pub.publish(*command_control);
 			pub.publish(*vel_control);
 		}
 		if (init_point){
@@ -228,7 +232,7 @@ int main(int argc, char** argv){
 
   	// Publishers
 	pub = n.advertise<geometry_msgs::Twist>(ee_vel_command_topic, 100);
-	command_pub = n.advertise<geometry_msgs::Twist>("command_topic", 100);
+	command_pub = n.advertise<geometry_msgs::TwistStamped>("command_topic", 100);
 	state_pub_high_f = n.advertise<trajectory_execution_msgs::PoseTwist>("/ee_position_high_f", 100);
 	state_pub_low_f = n.advertise<geometry_msgs::PoseStamped>("/ee_position_low_f", 100);
 	dis_pub = n.advertise<std_msgs::Float64>("/response_topic", 100);

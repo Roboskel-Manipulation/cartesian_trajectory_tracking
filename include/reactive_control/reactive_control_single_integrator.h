@@ -1,5 +1,6 @@
 #include <ros/ros.h>
 #include <geometry_msgs/Twist.h>
+#include <geometry_msgs/TwistStamped.h>
 #include <trajectory_execution_msgs/PoseTwist.h>
 #include <keypoint_3d_matching_msgs/Keypoint3d_list.h>
 #include <geometry_msgs/PointStamped.h>
@@ -27,6 +28,7 @@ geometry_msgs::PointStampedPtr desired_robot_position = boost::make_shared<geome
 geometry_msgs::PoseStampedPtr robot_pose = boost::make_shared<geometry_msgs::PoseStamped>();
 geometry_msgs::TwistPtr vel_control = boost::make_shared<geometry_msgs::Twist>();
 geometry_msgs::Vector3StampedPtr error = boost::make_shared<geometry_msgs::Vector3Stamped>();
+geometry_msgs::TwistStampedPtr command_control = boost::make_shared<geometry_msgs::TwistStamped>();
 std::shared_ptr<std::vector<float>> v1 = std::make_shared<std::vector<float>>();
 std::shared_ptr<std::vector<float>> v2 = std::make_shared<std::vector<float>>();
 visualization_msgs::MarkerPtr marker_human = boost::make_shared<visualization_msgs::Marker>();

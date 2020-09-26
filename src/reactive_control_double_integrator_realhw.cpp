@@ -17,11 +17,11 @@ void human_motion_callback(const geometry_msgs::PointStampedConstPtr human_msg){
 		init_z = human_msg->point.z;
 		if (sqrt(pow(init_x, 2) + pow(init_y, 2)) < self_col_dis and init_z < z_dis){
 			count -= 1;
-			ROS_WARN("Invalid initial point leading to self collision.\nGive another initial point");
+			ROS_WARN_STREAM("Invalid initial point leading to self collision. Give another initial point");
 		}
 		else if (sqrt(pow(init_x, 2) + pow(init_z, 2)) > extention_dis){
 			count -= 1;
-			ROS_WARN("Invalid initial point leading to overextention.\nGive another initial point");
+			ROS_WARN_STREAM("Invalid initial point leading to overextention. Give another initial point");
 		}
 		else{
 			count = 0;
@@ -31,9 +31,8 @@ void human_motion_callback(const geometry_msgs::PointStampedConstPtr human_msg){
 			init_x += xOffset;
 			init_y += yOffset;
 			init_z += zOffset;
-			ROS_INFO("Valid initial point");
+			ROS_INFO_STREAM("Valid initial point: " << init_x << " " << init_y << " " << init_z);
 		}
-		time_init = human_msg->header.stamp.toSec();
 	}
 	else{
 		if (count == 1){
@@ -41,11 +40,8 @@ void human_motion_callback(const geometry_msgs::PointStampedConstPtr human_msg){
 			dis_x = human_msg->point.x + xOffset - init_x;
 			dis_y = human_msg->point.y + yOffset - init_y;
 			dis_z = human_msg->point.z + zOffset - init_z;
-			ROS_WARN("The initial distances are %f, %f, %f", dis_x ,dis_y, dis_z);
+			ROS_WARN_STREAM("The initial distances are " << dis_x << ", " << dis_y << ", " << dis_z);
 		}
-		timenow = ros::Time::now();
-		// robot_pose->header.stamp = timenow;
-		state_pub_low_f.publish(*robot_pose);
 		
 		vis_robot_pub.publish(*marker_robot);
 		dis.data = sqrt(pow(desired_robot_position->point.x - robot_pose->pose.position.x, 2) 
@@ -53,77 +49,37 @@ void human_motion_callback(const geometry_msgs::PointStampedConstPtr human_msg){
 		dis_pub.publish(dis);
 		marker_robot->points.push_back(robot_pose->pose.position);
 		init_point = true;
-		// keypoint_time = human_msg->header.stamp;
-		// if (count == 1){
-		// 	time_duration = keypoint_time.toSec() - time_init;
-		// 	if (time_duration != 0){
-		// 		if (human_vel){
-		// 			desired_robot_velocity->twist.linear.x = (human_msg->point.x + xOffset - dis_x - init_x)/time_duration;
-		// 			desired_robot_velocity->twist.linear.y = (human_msg->point.y + yOffset - dis_x - init_y)/time_duration;
-		// 			desired_robot_velocity->twist.linear.z = (human_msg->point.z + zOffset - dis_x - init_z)/time_duration;
-		// 		}
-		// 		else{
-		// 			desired_robot_velocity->twist.linear.x = 0;
-		// 			desired_robot_velocity->twist.linear.y = 0;
-		// 			desired_robot_velocity->twist.linear.z = 0;
-		// 		}
-		// 		desired_robot_velocity->header.stamp = ros::Time::now();
-		// 	}
-		// }
-		// else{
-
-		// 	time_duration = keypoint_time.toSec() - desired_robot_position->header.stamp.toSec();
-		// 	time_duration_msg.data = time_duration;
-		// 	time_pub.publish(time_duration_msg);
-		// 	if (time_duration == 0){
-		// 		ROS_INFO("Zero time duration");
-		// 	}
-		// 	else{
-		// 		ROS_INFO("Valid time duration");
-		// 		ROS_INFO("Time duration: %f", time_duration);
-		// 		if (human_vel){
-		// 			desired_robot_velocity->twist.linear.x = (human_msg->point.x + xOffset - dis_x - init_x)/time_duration;
-		// 			desired_robot_velocity->twist.linear.y = (human_msg->point.y + yOffset - dis_x - init_y)/time_duration;
-		// 			desired_robot_velocity->twist.linear.z = (human_msg->point.z + zOffset - dis_x - init_z)/time_duration;
-		// 		}
-		// 		else{
-		// 			desired_robot_velocity->twist.linear.x = 0;
-		// 			desired_robot_velocity->twist.linear.y = 0;
-		// 			desired_robot_velocity->twist.linear.z = 0;
-		// 		}
-		// 		desired_robot_velocity->header.stamp = ros::Time::now();
-		// 		des_vel_pub.publish(*desired_robot_velocity);
-		// 	}
-		// }
 	}
 
 	count += 1;
 
+	// Desired robot position
 	des_x = human_msg->point.x + xOffset - dis_x;
 	des_y = human_msg->point.y + yOffset - dis_y;
 	des_z = human_msg->point.z + zOffset - dis_z;
 
 	if (count > 1){
-		ROS_INFO("Control point dis: %f", sqrt(pow(des_x, 2) + pow(des_y, 2)));
+		// ROS_INFO("Control point dis: %f", sqrt(pow(des_x, 2) + pow(des_y, 2)));
 		if (sqrt(pow(des_x, 2) + pow(des_y, 2)) < self_col_dis and des_z < z_dis){
-			ROS_WARN("Control point leading to self collision.\nWaiting for valid control point");
+			ROS_WARN_STREAM("Control point leading to self collision. Waiting for valid control point");
 		}
-		else if (sqrt(pow(des_x, 2) + pow(des_y, 2)) > extention_dis){
-			ROS_WARN("Control point leading to overextention\nWaiting for valid control point");
+		else if (sqrt(pow(des_x, 2) + pow(des_y, 2) + pow(des_z, 2)) > extention_dis){
+			ROS_WARN_STREAM("Control point leading to overextention Waiting for valid control point");
 		}
 		else{
-			ROS_INFO("Valid control point");
-			// Transitioned human coordinates - Desired robot coordinates
-			desired_robot_position->point.x = human_msg->point.x + xOffset - dis_x;
-			desired_robot_position->point.y = human_msg->point.y + yOffset - dis_y;
-			desired_robot_position->point.z = human_msg->point.z + zOffset - dis_z;
-			desired_robot_position->header.stamp = human_msg->header.stamp;
-			des_pos_pub.publish(*desired_robot_position);
+			ROS_INFO_STREAM("Valid control point");
+			ROS_INFO_STREAM("Control points: " << desired_robot_position->point.x << " " << desired_robot_position->point.y << " " << desired_robot_position->point.z);
 
-			human_position->point.x = desired_robot_position->point.x;
-			human_position->point.y = desired_robot_position->point.y;
-			human_position->point.z = desired_robot_position->point.z;
-			human_position->header.stamp = desired_robot_position->header.stamp;
+			// Transitioned human coordinates - Desired robot coordinates
+			desired_robot_position->point.x = des_x;
+			desired_robot_position->point.y = des_y;
+			desired_robot_position->point.z = des_z;
+			desired_robot_position->header.stamp = human_msg->header.stamp;
+
+			human_position->point.x = des_x;
+			human_position->point.y = des_y;
+			human_position->point.z = des_z;
+			human_position->header.stamp = robot_pose->header.stamp;
 
 			control_points_pub.publish(*human_position);
 
@@ -163,40 +119,21 @@ void state_callback (const trajectory_execution_msgs::PoseTwist::ConstPtr state_
 			vel_control->linear.z = abs(vel_control->linear.z) > VEL_Z_MAX_INIT ? VEL_Z_MAX_INIT*abs(vel_control->linear.z)/vel_control->linear.z : vel_control->linear.z;
 			pub.publish(*vel_control);
 		}
-		else{
-			real_vel_pub.publish(*robot_velocity);
-			
-			time_now = ros::Time::now();
+		else if (count != 0){
 
-			// Velocity component
-			vel_command->linear.x = -robot_pose->pose.position.x;
-			vel_command->linear.y = -robot_pose->pose.position.y;
-			vel_command->linear.z = -robot_pose->pose.position.z;
-			commanded_twist->twist.linear.x = vel_command->linear.x;
-			commanded_twist->twist.linear.y = vel_command->linear.y;
-			commanded_twist->twist.linear.z = vel_command->linear.z;
-			commanded_twist->header.stamp = time_now;
-			com_vel_pub.publish(*commanded_twist);
-
-			// Acceleration component
-			acc_command->linear.x = -robot_velocity->twist.linear.x;
-			acc_command->linear.y = -robot_velocity->twist.linear.y;
-			acc_command->linear.z = -robot_velocity->twist.linear.z;
-			commanded_acc->accel.linear.x = acc_command->linear.x;
-			commanded_acc->accel.linear.y = acc_command->linear.y;
-			commanded_acc->accel.linear.z = acc_command->linear.z;
-			commanded_acc->header.stamp = time_now;
-			robot_velocity->header.stamp = time_now;
-			com_acc_pub.publish(*commanded_acc);
-			real_vel_pub.publish(*robot_velocity);
-
+			// Positional error
+			error->twist.linear.x = desired_robot_position->point.x - robot_pose->pose.position.x;
+			error->twist.linear.y = desired_robot_position->point.x - robot_pose->pose.position.y;
+			error->twist.linear.z = desired_robot_position->point.x - robot_pose->pose.position.z;
+			error->header.stamp = ros::Time::now();
+			error_pub.publish(*error);
 
 			// Commanded acceleration
-			acc[0] = Kx*acc_command->linear.x + Dx*vel_command->linear.x;
-			acc[1] = Ky*acc_command->linear.y + Dy*vel_command->linear.y;
-			acc[2] = Kz*acc_command->linear.z + Dz*vel_command->linear.z;
+			acc[0] = -Kx*robot_velocity->twist.linear.x + Dx*error->twist.linear.x;
+			acc[1] = -Ky*robot_velocity->twist.linear.y + Dy*error->twist.linear.y;
+			acc[2] = -Kz*robot_velocity->twist.linear.z + Dz*error->twist.linear.z;
 
-			
+			// Store previous commanded velocities			
 			vel_control_prev->linear.x = vel_control->linear.x;
 			vel_control_prev->linear.y = vel_control->linear.y;
 			vel_control_prev->linear.z = vel_control->linear.z;
@@ -206,34 +143,32 @@ void state_callback (const trajectory_execution_msgs::PoseTwist::ConstPtr state_
 			vel_control->linear.y += acc[1]*vel_duration;
 			vel_control->linear.z += acc[2]*vel_duration;
 
-			command_control->twist.linear.x = vel_control->linear.x;
-			command_control->twist.linear.y = vel_control->linear.y;
-			command_control->twist.linear.z = vel_control->linear.z;
-			command_control->header.stamp = ros::Time::now();
+			vel_control_stamp->twist.linear.x = vel_control->linear.x;
+			vel_control_stamp->twist.linear.y = vel_control->linear.y;
+			vel_control_stamp->twist.linear.z = vel_control->linear.z;
+			vel_control_stamp->header.stamp = ros::Time::now();
 			vel_control->linear.x = abs(vel_control->linear.x) > VEL_X_MAX ? VEL_X_MAX*abs(vel_control->linear.x)/vel_control->linear.x : vel_control->linear.x;
 			vel_control->linear.y = abs(vel_control->linear.y) > VEL_Y_MAX ? VEL_Y_MAX*abs(vel_control->linear.y)/vel_control->linear.y : vel_control->linear.y;
 			vel_control->linear.z = abs(vel_control->linear.z) > VEL_Z_MAX ? VEL_Z_MAX*abs(vel_control->linear.z)/vel_control->linear.z : vel_control->linear.z;
 			
+			// Publish velocites if not NaN
 			if (!std::isnan(vel_control->linear.x) and !std::isnan(vel_control->linear.y) and !std::isnan(vel_control->linear.y)){
-				ROS_INFO("Valid commanded velocity");
-				ROS_INFO("The control time cycle is %f", vel_duration);
-				std::cout << *vel_control << std::endl;
-				final_command_pub.publish(*command_control);
+				ROS_INFO_STREAM("Valid commanded velocity");
+				ROS_INFO_STREAM("The control time cycle is " << vel_duration);
+				vel_control_stamp_pub.publish(*vel_control_stamp);
 				pub.publish(*vel_control);
 			}
 			else{
-				ROS_INFO("The commanded acceleration is %f, %f, %f", acc[0], acc[1], acc[2]);
-				ROS_INFO("The control time cycle is %f", vel_duration);
-				ROS_INFO("The commanded submodules are: \n");
-				std::cout << *vel_command << std::endl;
-				std::cout << *acc_command << std::endl;
+				ROS_INFO_STREAM("The commanded acceleration is " << acc[0] << " " << acc[1] << " " << acc[2]);
+				ROS_INFO_STREAM("The control time cycle is " << vel_duration);
+				ROS_INFO_STREAM("Gonna publish previous velocities");
 				vel_control->linear.x = vel_control_prev->linear.x;
 				vel_control->linear.y = vel_control_prev->linear.y;
 				vel_control->linear.z = vel_control_prev->linear.z;
 			}
 		}
 		if (init_point)
-			state_pub_high_f.publish(*state_msg);
+			robot_state_pub.publish(*state_msg);
 	}
 }
 
@@ -258,9 +193,6 @@ int main(int argc, char** argv){
 
 	// Extention distance
 	n.param("reactive_control_node/extention_dis", extention_dis, 0.0f);
-
-	// Human velocity
-	n.param("reactive_control_node/human_vel", human_vel, false);
 
 	// Human marker - Rviz
 	marker_human->header.frame_id = "base_link";
@@ -298,21 +230,13 @@ int main(int argc, char** argv){
 
 	// Publishers
 	pub = n.advertise<geometry_msgs::Twist>(ee_vel_command_topic, 100);
-	state_pub_high_f = n.advertise<trajectory_execution_msgs::PoseTwist>("/ee_position_high_f", 100);
-	state_pub_low_f = n.advertise<geometry_msgs::PoseStamped>("/ee_position_low_f", 100);
-	time_pub = n.advertise<std_msgs::Float64>("/time_topic", 100);
+	robot_state_pub = n.advertise<trajectory_execution_msgs::PoseTwist>("/ee_position_high_f", 100);
 	dis_pub = n.advertise<std_msgs::Float64>("/response_topic", 100);
 	vis_human_pub = n.advertise<visualization_msgs::Marker>("/vis_human_topic", 100);
 	vis_robot_pub = n.advertise<visualization_msgs::Marker>("/vis_robot_topic", 100);
 	control_points_pub = n.advertise<geometry_msgs::PointStamped>("trajectory_points_stamp", 100);	
-	com_vel_pub = n.advertise<geometry_msgs::TwistStamped>("com_vel_topic", 100);
-	com_acc_pub = n.advertise<geometry_msgs::AccelStamped>("com_acc_topic", 100);
-	des_pos_pub = n.advertise<geometry_msgs::PointStamped>("des_pos_topic", 100);
-	des_vel_pub = n.advertise<geometry_msgs::TwistStamped>("des_vel_topic", 100);
-	final_command_pub = n.advertise<geometry_msgs::TwistStamped>("final_command_topic", 100);
-
-	real_vel_pub = n.advertise<geometry_msgs::TwistStamped>("real_vel_topic", 100);
-	sim_robot_vel_check_pub = n.advertise<geometry_msgs::Vector3>("sim_robot_check_topic", 100);
+	error_pub = n.advertise<geometry_msgs::TwistStamped>("error_topic", 100);
+	vel_control_stamp_pub = n.advertise<geometry_msgs::TwistStamped>("vel_control_stamp_topic", 100);
 
 	// Subscribers
 	ros::Subscriber sub = n.subscribe(ee_state_topic, 100, state_callback);

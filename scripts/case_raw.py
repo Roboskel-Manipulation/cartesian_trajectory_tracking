@@ -46,6 +46,8 @@ def callback(msg):
 			z_mov.append(z_point)
 		else:
 			if abs(x_mov[-1] - x_point) < 0.1 and abs(y_mov[-1] - y_point) < 0.1 and abs(z_mov[-1] - z_point) < 0.1:
+				rospy.loginfo("Valid point")
+				rospy.loginfo(count)
 				x_mov.append(x_point)
 				y_mov.append(y_point)
 				z_mov.append(z_point)
@@ -61,6 +63,7 @@ def callback(msg):
 			std_x = np.std(x_mov)
 			std_y = np.std(y_mov)
 			std_z = np.std(z_mov)
+			# rospy.loginfo('STD: %f, %f, %f'%(std_x, std_y, std_z))
 			if (not start) and (std_x > 0.01 or std_y > 0.01 or std_z > 0.01):
 				rospy.loginfo("Motion started at sample %d"%count)
 				start = True
