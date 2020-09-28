@@ -9,11 +9,11 @@ void human_motion_callback(const geometry_msgs::PointStampedConstPtr human_msg){
 		init_z = human_msg->point.z;
 		if (sqrt(pow(init_x, 2) + pow(init_y, 2)) < self_col_dis and init_z < z_dis){
 			count -= 1;
-			ROS_WARN("Invalid initial point leading to self collision.\nGive another initial point");
+			ROS_WARN_STREAM("Invalid initial point leading to self collision.\nGive another initial point");
 		}
 		else if (sqrt(pow(init_x, 2) + pow(init_y, 2)) > extention_dis){
 			count -= 1;
-			ROS_WARN("Invalid initial point leading to overextention.\nGive another initial point");
+			ROS_WARN_STREAM("Invalid initial point leading to overextention.\nGive another initial point");
 		}
 		else{
 			count = 0;
@@ -23,7 +23,7 @@ void human_motion_callback(const geometry_msgs::PointStampedConstPtr human_msg){
 			init_x += xOffset;
 			init_y += yOffset;
 			init_z += zOffset;
-			ROS_INFO("Valid initial point");
+			ROS_INFO_STREAM("Valid initial point");
 			std::cout << xOffset << " " << yOffset << " " << zOffset << std::endl;
 		}
 	}
@@ -33,7 +33,7 @@ void human_motion_callback(const geometry_msgs::PointStampedConstPtr human_msg){
 			dis_x = human_msg->point.x + xOffset - init_x;
 			dis_y = human_msg->point.y + yOffset - init_y;
 			dis_z = human_msg->point.z + zOffset - init_z;
-			ROS_INFO("The initial distances are %f, %f, %f", dis_x ,dis_y, dis_z);
+			ROS_INFO_STREAM("The initial distances are " << dis_x << " " << dis_y << " " << dis_z);
 		}
 		
 		vis_robot_pub.publish(*marker_robot);
@@ -52,15 +52,15 @@ void human_motion_callback(const geometry_msgs::PointStampedConstPtr human_msg){
 	des_z = human_msg->point.z + zOffset - dis_z;
 
 	if (count > 1){
-		ROS_INFO("Control point dis: %f", sqrt(pow(des_x,2)+pow(des_y, 2)));
+		ROS_INFO_STREAM("Control point dis: " << sqrt(pow(des_x,2)+pow(des_y, 2)));
 		if (sqrt(pow(des_x, 2)+pow(des_y, 2)) < self_col_dis and des_z < z_dis){
-			ROS_WARN("Control point leading to self collision.\n Waiting for valid control point");
+			ROS_WARN_STREAM("Control point leading to self collision.\n Waiting for valid control point");
 		}
 		else if (sqrt(pow(des_x, 2)+pow(des_y, 2)) > extention_dis){
-			ROS_WARN("Control point leading to extention\n Waiting for valid control point");
+			ROS_WARN_STREAM("Control point leading to overextention\n Waiting for valid control point");
 		}
 		else{
-			ROS_INFO("Valid control point");
+			ROS_INFO_STREAM("Valid control point");
 			desired_robot_position->point.x = des_x;
 			desired_robot_position->point.y = des_y;
 			desired_robot_position->point.z = des_z;
@@ -77,7 +77,6 @@ void human_motion_callback(const geometry_msgs::PointStampedConstPtr human_msg){
 		  	vis_human_pub.publish(*marker_human);
 		}
 	}
-	// desired_robot_position->header.stamp = ros::Time::now();
 }
 
 void state_callback (const trajectory_execution_msgs::PoseTwist::ConstPtr state_msg){
@@ -132,20 +131,20 @@ void state_callback (const trajectory_execution_msgs::PoseTwist::ConstPtr state_
 			vel_control->linear.z += acc[2]*vel_duration;
 
 			if (sqrt(pow(robot_pose->pose.position.x, 2) + pow(robot_pose->pose.position.y, 2)) < self_col_dis and robot_pose->pose.position.z < z_dis){
-				ROS_WARN("Motion leading to self collision.\nCommanding zero velocities.");
+				ROS_WARN_STREAM("Motion leading to self collision.\nCommanding zero velocities.");
 				vel_control->linear.x = 0;
 				vel_control->linear.y = 0;
 				vel_control->linear.z = 0;
 				pub.publish(*vel_control);
 			}
 			else if (!std::isnan(vel_control->linear.x) and !std::isnan(vel_control->linear.y) and !std::isnan(vel_control->linear.y)){
-				ROS_INFO("Valid commanded velocity");
+				ROS_INFO_STREAM("Valid commanded velocity");
 				pub.publish(*vel_control);
 			}
 			else{
-				ROS_INFO("The commanded acceleration is %f, %f, %f", acc[0], acc[1], acc[2]);
-				ROS_INFO("The control time cycle is %f", vel_duration);
-				ROS_INFO("Gonna publish previous velocities");
+				ROS_INFO_STREAM("The commanded acceleration is " << acc[0] << " " << acc[1] << " " << acc[2]);
+				ROS_INFO_STREAM("The control time cycle is " << vel_duration);
+				ROS_INFO_STREAM("Gonna publish previous velocities");
 				vel_control->linear.x = vel_control_prev->linear.x;
 				vel_control->linear.y = vel_control_prev->linear.y;
 				vel_control->linear.z = vel_control_prev->linear.z;

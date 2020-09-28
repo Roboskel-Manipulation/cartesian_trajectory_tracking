@@ -3,11 +3,6 @@ Dx: 2
 Dy: 2
 Dz: 2
 
-# Offsets for robot workspace
-xOffset: 0.6
-yOffset: 0.5
-zOffset: 0.0
-
 # Euclidean distance gain
 eucl_flag: false
 D_eucl: 0.2
@@ -27,7 +22,7 @@ self_col_dis: 0.28
 z_dis: 0.23
 
 # Extention distance
-extention_dis: 0.5 #0.56-0.03
+extention_dis: 0.55 #0.56-0.03
 
 # sim or real HW
 sim: false

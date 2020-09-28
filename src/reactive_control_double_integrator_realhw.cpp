@@ -123,8 +123,8 @@ void state_callback (const trajectory_execution_msgs::PoseTwist::ConstPtr state_
 
 			// Positional error
 			error->twist.linear.x = desired_robot_position->point.x - robot_pose->pose.position.x;
-			error->twist.linear.y = desired_robot_position->point.x - robot_pose->pose.position.y;
-			error->twist.linear.z = desired_robot_position->point.x - robot_pose->pose.position.z;
+			error->twist.linear.y = desired_robot_position->point.y - robot_pose->pose.position.y;
+			error->twist.linear.z = desired_robot_position->point.z - robot_pose->pose.position.z;
 			error->header.stamp = ros::Time::now();
 			error_pub.publish(*error);
 

@@ -22,13 +22,21 @@
 #define VEL_Y_MAX_INIT 0.1
 #define VEL_Z_MAX_INIT 0.1
 
-ros::Publisher pub, command_pub, error_pub, gain_pub, state_pub_high_f, state_pub_low_f, vis_human_pub, vis_robot_pub, dis_pub, dis_all_pub, dis_max_pub, control_points_pub;
+ros::Publisher pub, vel_control_stamp_pub, error_pub, gain_pub, robot_state_pub, vis_human_pub, vis_robot_pub, dis_pub, dis_all_pub, dis_max_pub, control_points_pub;
 
+// Desired robot position
 geometry_msgs::PointStampedPtr desired_robot_position = boost::make_shared<geometry_msgs::PointStamped>();
+
+// Current robot pose
 geometry_msgs::PoseStampedPtr robot_pose = boost::make_shared<geometry_msgs::PoseStamped>();
+
+// Control input
 geometry_msgs::TwistPtr vel_control = boost::make_shared<geometry_msgs::Twist>();
-geometry_msgs::Vector3StampedPtr error = boost::make_shared<geometry_msgs::Vector3Stamped>();
-geometry_msgs::TwistStampedPtr command_control = boost::make_shared<geometry_msgs::TwistStamped>();
+geometry_msgs::TwistStampedPtr vel_control_stamp = boost::make_shared<geometry_msgs::TwistStamped>();
+
+// Error (desired - real)
+geometry_msgs::TwistStampedPtr error = boost::make_shared<geometry_msgs::TwistStamped>();
+
 std::shared_ptr<std::vector<float>> v1 = std::make_shared<std::vector<float>>();
 std::shared_ptr<std::vector<float>> v2 = std::make_shared<std::vector<float>>();
 visualization_msgs::MarkerPtr marker_human = boost::make_shared<visualization_msgs::Marker>();
