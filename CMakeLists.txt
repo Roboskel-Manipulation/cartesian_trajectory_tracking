@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8.3)
 project(reactive_control)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
-# add_compile_options(-std=c++11)
+# add_compile_options(-std=c++17)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -16,6 +16,7 @@ find_package(catkin REQUIRED COMPONENTS
 	keypoint_3d_matching_msgs
 	trajectory_execution_msgs
 	trajectory_process_utils_srvs
+	tf
 )
 
 
@@ -54,3 +55,18 @@ target_link_libraries (reactive_control_triple_integrator ${catkin_LIBRARIES})
 
 add_executable (check_delay src/check_delay.cpp)
 target_link_libraries (check_delay ${catkin_LIBRARIES})
+
+add_executable (jog_arm_check src/jog_arm_check.cpp)
+target_link_libraries (jog_arm_check ${catkin_LIBRARIES})
+
+add_executable (check_jog_arm src/check_jog_arm.cpp)
+target_link_libraries (check_jog_arm ${catkin_LIBRARIES})
+
+add_executable (check_jog_arm_timer src/check_jog_arm_timer.cpp)
+target_link_libraries (check_jog_arm_timer ${catkin_LIBRARIES})
+
+add_executable (jog_arm_teleop src/jog_arm_teleop.cpp)
+target_link_libraries (jog_arm_teleop ${catkin_LIBRARIES})
+
+add_executable (input_rotate src/input_rotate.cpp)
+target_link_libraries (input_rotate ${catkin_LIBRARIES})

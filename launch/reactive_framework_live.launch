@@ -7,7 +7,8 @@
 	<arg name="single_integrator" default="true"/>
 	<arg name="sim" default="false"/>
 	<arg name="live_camera" default="true"/>	
-	
+	<arg name="jog_arm" default="false"/>
+
 	<include file="$(find openpose_utils_launch)/launch/openpose_launch.launch">
 		<arg name="sim" default="$(arg sim)"/>
 		<arg name="live_camera" default="$(arg live_camera)"/>
@@ -31,18 +32,27 @@
 	</group>
 
 	<group if="$(arg case_raw)">
-		<node name="raw_points_process" type="case_raw.py" pkg="reactive_control" respawn="false" output="screen">
+		<node name="raw_points_process" type="case_raw.py" pkg="reactive_control" respawn="false" output="log">
 		</node>
 	</group>
 
-	<group if="$(arg single_integrator)">
-		<include file="$(find reactive_control)/launch/reactive_control_single_integrator.launch">
-		</include>
+	<!-- Billard controller -->
+	<group unless="$(arg jog_arm)">
+		<group if="$(arg single_integrator)">
+			<include file="$(find reactive_control)/launch/reactive_control_single_integrator.launch">
+			</include>
+		</group>
+
+		<group unless="$(arg single_integrator)">
+			<include file="$(find reactive_control)/launch/reactive_control_double_integrator.launch">
+				<arg name="sim" default="false"/>
+			</include>
+		</group>
 	</group>
 
-	<group unless="$(arg single_integrator)">
-		<include file="$(find reactive_control)/launch/reactive_control_double_integrator.launch">
-			<arg name="sim" default="false"/>
+	<!-- Jog arm -->
+	<group if="$(arg jog_arm)">
+		<include file="$(find reactive_control)/launch/jog_arm_teleop.launch">
 		</include>
 	</group>
 

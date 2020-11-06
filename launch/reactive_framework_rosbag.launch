@@ -11,7 +11,7 @@
 	</node>
 	
 	<group if="$(arg case_raw)">
-		<node name="case_raw" type="case_raw.py" pkg="reactive_control" respawn="false" output="log">
+		<node name="case_raw" type="case_raw.py" pkg="reactive_control" respawn="false" output="screen">
 		</node>
 	</group>
 

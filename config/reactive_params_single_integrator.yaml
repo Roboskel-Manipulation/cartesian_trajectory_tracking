@@ -1,7 +1,7 @@
 # Static gain
-Dx: 2
-Dy: 2
-Dz: 2
+Dx: 3
+Dy: 3
+Dz: 3
 
 # Euclidean distance gain
 eucl_flag: false
@@ -18,11 +18,11 @@ Kb_exp: 34
 c: 0
 
 # Self collision distance
-self_col_dis: 0.28
+self_col_dis: 0.22
 z_dis: 0.23
 
 # Extention distance
-extention_dis: 0.55 #0.56-0.03
+extention_dis: 0.53 #0.56-0.03
 
 # sim or real HW
 sim: false

@@ -1,5 +1,6 @@
 #include "reactive_control/reactive_control_double_integrator.h"
 
+float theta;
 
 void human_motion_callback(const geometry_msgs::PointStampedConstPtr human_msg){
 	received_point = true;
@@ -7,6 +8,10 @@ void human_motion_callback(const geometry_msgs::PointStampedConstPtr human_msg){
 		init_x = human_msg->point.x;
 		init_y = human_msg->point.y;
 		init_z = human_msg->point.z;
+		float r = sqrt(pow(init_x, 2) + pow(init_y, 2));
+		init_x = init_x/abs(init_x) * r * cos(atan(human_msg->point.y/human_msg->point.x) - theta);
+		init_y = init_y/abs(init_y) * r * sin(atan(human_msg->point.y/human_msg->point.x) - theta);
+
 		if (sqrt(pow(init_x, 2) + pow(init_y, 2)) < self_col_dis and init_z < z_dis){
 			count -= 1;
 			ROS_WARN_STREAM("Invalid initial point leading to self collision.\nGive another initial point");
@@ -17,9 +22,9 @@ void human_motion_callback(const geometry_msgs::PointStampedConstPtr human_msg){
 		}
 		else{
 			count = 0;
-			xOffset = robot_pose->pose.position.x - human_msg->point.x;
-			yOffset = robot_pose->pose.position.y - human_msg->point.y;
-			zOffset = robot_pose->pose.position.z - human_msg->point.z;
+			xOffset = robot_pose->pose.position.x - init_x;
+			yOffset = robot_pose->pose.position.y - init_y;
+			zOffset = robot_pose->pose.position.z - init_z;
 			init_x += xOffset;
 			init_y += yOffset;
 			init_z += zOffset;
@@ -30,8 +35,9 @@ void human_motion_callback(const geometry_msgs::PointStampedConstPtr human_msg){
 	else{
 		if (count == 1){
 			start_time = human_msg->header.stamp.toSec();
-			dis_x = human_msg->point.x + xOffset - init_x;
-			dis_y = human_msg->point.y + yOffset - init_y;
+			float r_new = sqrt(pow(human_msg->point.x, 2) + pow(human_msg->point.y, 2));
+			dis_x = human_msg->point.x / abs(human_msg->point.x) * r_new * cos(atan(human_msg->point.y/human_msg->point.x) - theta) + xOffset - init_x;
+			dis_y = human_msg->point.y / abs(human_msg->point.y) * r_new * sin(atan(human_msg->point.y/human_msg->point.x) - theta) + yOffset - init_y;
 			dis_z = human_msg->point.z + zOffset - init_z;
 			ROS_INFO_STREAM("The initial distances are " << dis_x << " " << dis_y << " " << dis_z);
 		}
@@ -47,8 +53,9 @@ void human_motion_callback(const geometry_msgs::PointStampedConstPtr human_msg){
 	count += 1;
 
 	// Transitioned human coordinates - Desired robot coordinates
-	des_x = human_msg->point.x + xOffset - dis_x;
-	des_y = human_msg->point.y + yOffset - dis_y;
+	float r = sqrt(pow(human_msg->point.x, 2) + pow(human_msg->point.y, 2));
+	des_x = human_msg->point.x / abs(human_msg->point.x) * r * cos(atan(human_msg->point.y/human_msg->point.x) - theta) + xOffset - dis_x;
+	des_y = human_msg->point.y / abs(human_msg->point.y) * r * sin(atan(human_msg->point.y/human_msg->point.x) - theta) + yOffset - dis_y;
 	des_z = human_msg->point.z + zOffset - dis_z;
 
 	if (count > 1){
@@ -177,6 +184,10 @@ int main(int argc, char** argv){
 	n.param("reactive_control_node/self_col_dis", self_col_dis, 0.0f);
 	n.param("reactive_control_node/z_dis", z_dis, 0.0f);
 	n.param("reactive_control_node/extention_dis", extention_dis, 0.0f);
+
+	// Rotation angle
+	n.param("reactive_control_node/theta", theta, 0.0f);
+	theta = theta * M_PI / 180;
 
 	// Human marker - Rviz
 	marker_human->header.frame_id = "base_link";

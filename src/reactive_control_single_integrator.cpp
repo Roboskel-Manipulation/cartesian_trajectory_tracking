@@ -1,5 +1,7 @@
 #include "reactive_control/reactive_control_single_integrator.h"
 
+bool valid_z = true;
+
 void human_motion_callback(const geometry_msgs::PointStampedConstPtr human_msg){
 	received_point = true;
 	if (count <= 0){
@@ -7,13 +9,14 @@ void human_motion_callback(const geometry_msgs::PointStampedConstPtr human_msg){
 		init_y = human_msg->point.y;
 		init_z = human_msg->point.z;
 		std::cout << sqrt(pow(init_x, 2) + pow(init_y, 2)) << std::endl; 
+		
 		if (sqrt(pow(init_x, 2) + pow(init_y, 2)) < self_col_dis and init_z < z_dis){
 			count -= 1;
-			ROS_WARN_STREAM("Invalid initial point leading to self collision.\nGive another initial point");
+			ROS_WARN_STREAM("Invalid initial point leading to self collision. Give another initial point");
 		}
 		else if (sqrt(pow(init_x, 2) + pow(init_z, 2)) > extention_dis){
 			count -= 1;
-			ROS_WARN_STREAM("Invalid initial point leading to overextention.\nGive another initial point");
+			ROS_WARN_STREAM("Invalid initial point leading to overextention. Give another initial point");
 		}
 		else{
 			count = 0;
@@ -62,9 +65,9 @@ void human_motion_callback(const geometry_msgs::PointStampedConstPtr human_msg){
 		else{
 			ROS_INFO_STREAM("Valid control point");
 			// Transitioned human coordinates - Desired robot coordinates
-			desired_robot_position->point.x = human_msg->point.x + xOffset - dis_x;
-			desired_robot_position->point.y = human_msg->point.y + yOffset - dis_y;
-			desired_robot_position->point.z = human_msg->point.z + zOffset - dis_z;
+			desired_robot_position->point.x = des_x;
+			desired_robot_position->point.y = des_y;
+			desired_robot_position->point.z = des_z;
 			desired_robot_position->header.stamp = robot_pose->header.stamp;
 
 			control_points_pub.publish(*desired_robot_position);
@@ -84,7 +87,15 @@ void state_callback (const trajectory_execution_msgs::PoseTwist::ConstPtr state_
 
 
 	if (received_point){
-		if (count == 1){
+		if (robot_pose->pose.position.z < 0.03){
+			valid_z = false;
+			vel_control->linear.x = 0;
+			vel_control->linear.y = 0;
+			vel_control->linear.z = 0;
+			pub.publish(*vel_control);
+			ROS_ERROR_STREAM("Invalid z point. Halting motion");
+		}		
+		if (valid_z and count == 1){
 			vel_control->linear.x = (init_x - robot_pose->pose.position.x);
 			vel_control->linear.y = (init_y - robot_pose->pose.position.y);
 			vel_control->linear.z = (init_z - robot_pose->pose.position.z);
@@ -96,7 +107,7 @@ void state_callback (const trajectory_execution_msgs::PoseTwist::ConstPtr state_
 			vel_control->linear.z = abs(vel_control->linear.z) > VEL_Z_MAX_INIT ? VEL_Z_MAX_INIT*vel_control->linear.z/abs(vel_control->linear.z) : vel_control->linear.z;
 			pub.publish(*vel_control);
 		}
-		else if (count != 0){
+		else if (valid_z and count != 0){
 			vis_robot_pub.publish(*marker_robot);
 			dis_all.data = sqrt(pow(desired_robot_position->point.x - robot_pose->pose.position.x, 2) 
 				+ pow(desired_robot_position->point.y - robot_pose->pose.position.y, 2));
@@ -227,16 +238,16 @@ int main(int argc, char** argv){
 
   	// Publishers
 	pub = n.advertise<geometry_msgs::Twist>(ee_vel_command_topic, 100);
-	vel_control_stamp_pub = n.advertise<geometry_msgs::TwistStamped>("vel_control_stamp_topic", 100);
-	robot_state_pub = n.advertise<trajectory_execution_msgs::PoseTwist>("/ee_position_high_f", 100);
+	robot_state_pub = n.advertise<trajectory_execution_msgs::PoseTwist>("/ee_state_topic", 100);
+	control_points_pub = n.advertise<geometry_msgs::PointStamped>("trajectory_points_stamp", 100);	
 	dis_pub = n.advertise<std_msgs::Float64>("/response_topic", 100);
 	dis_all_pub = n.advertise<std_msgs::Float64>("/distance_topic", 100);
 	dis_max_pub = n.advertise<std_msgs::Float64>("/dis_max_topic", 100);
 	gain_pub = n.advertise<std_msgs::Float64MultiArray>("/gain_topic", 100);
+	error_pub = n.advertise<geometry_msgs::TwistStamped>("/error_topic", 100);
+	vel_control_stamp_pub = n.advertise<geometry_msgs::TwistStamped>("vel_control_stamp_topic", 100);
 	vis_human_pub = n.advertise<visualization_msgs::Marker>("/vis_human_topic", 100);
 	vis_robot_pub = n.advertise<visualization_msgs::Marker>("/vis_robot_topic", 100);
-	control_points_pub = n.advertise<geometry_msgs::PointStamped>("trajectory_points_stamp", 100);	
-	error_pub = n.advertise<geometry_msgs::TwistStamped>("/error_topic", 100);
 
 	// Subscribers
 	ros::Subscriber sub = n.subscribe(ee_state_topic, 100, state_callback);

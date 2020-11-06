@@ -10,9 +10,10 @@ x, y, z = [], [], []
 x_mov, y_mov, z_mov = [], [], []
 init_flag, start = False, False
 count = 0
+end = False
 
 def callback(msg):
-	global pub, x, y, z, init_flag, x_mov, y_mov, start, count
+	global pub, x, y, z, init_flag, x_mov, y_mov, start, end, count
 	count += 1
 	for i in range(len(msg.keypoints)):
 		if msg.keypoints[i].name == "RWrist":
@@ -29,7 +30,7 @@ def callback(msg):
 				x.append(x_point)
 				y.append(y_point)
 				z.append(z_point)
-	if (not init_flag) and len(x) == 15:
+	if not init_flag and len(x) == 15:
 		init_point = PointStamped()
 		init_point.header.stamp = time_point
 		init_point.point.x = np.mean(x)
@@ -38,6 +39,7 @@ def callback(msg):
 		pub.publish(init_point)
 		init_flag = True
 		rospy.loginfo("Published initial point")
+		print (init_point)
 
 	if init_flag:
 		if len(x_mov) == 0:
@@ -45,9 +47,11 @@ def callback(msg):
 			y_mov.append(y_point)
 			z_mov.append(z_point)
 		else:
-			if abs(x_mov[-1] - x_point) < 0.1 and abs(y_mov[-1] - y_point) < 0.1 and abs(z_mov[-1] - z_point) < 0.1:
-				rospy.loginfo("Valid point")
-				rospy.loginfo(count)
+			if x_point == 0.0 and y_point == 0.0 and z_point == 0.0:
+				valid_point = False
+			elif abs(x_mov[-1] - x_point) < 0.1 and abs(y_mov[-1] - y_point) < 0.1 and abs(z_mov[-1] - z_point) < 0.1:
+				# rospy.loginfo("Valid point")
+				# rospy.loginfo(count)
 				x_mov.append(x_point)
 				y_mov.append(y_point)
 				z_mov.append(z_point)
@@ -63,9 +67,9 @@ def callback(msg):
 			std_x = np.std(x_mov)
 			std_y = np.std(y_mov)
 			std_z = np.std(z_mov)
-			# rospy.loginfo('STD: %f, %f, %f'%(std_x, std_y, std_z))
 			if (not start) and (std_x > 0.01 or std_y > 0.01 or std_z > 0.01):
 				rospy.loginfo("Motion started at sample %d"%count)
+				rospy.loginfo('STD: %f, %f, %f'%(std_x, std_y, std_z))
 				start = True
 			if start:
 				point = PointStamped()
@@ -74,6 +78,7 @@ def callback(msg):
 				point.point.y = y_point
 				point.point.z = z_point
 				pub.publish(point)
+
 def main():
 	global pub
 	rospy.init_node("raw_points")

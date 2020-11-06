@@ -1,17 +1,20 @@
 # Static gain
-Dx: 30
-Dy: 30
-Dz: 30
+Dx: 20
+Dy: 20
+Dz: 20
 Kx: 10
 Ky: 10
 Kz: 10
 
 # Self collision distance
-self_col_dis: 0.28
+self_col_dis: 0.23
 z_dis: 0.23
 
 # Extention distance
-extention_dis: 0.55 #0.56-0.03
+extention_dis: 0.60 #0.56-0.03
 
 # Control scheme
 human_vel: false
+
+# rotation
+theta: 0

@@ -7,8 +7,9 @@
 	<arg name="single_integrator" default="true"/>
 	<arg name="trajectory_file" default="/home/ttsitos/Desktop/yaml_files/fast_gpu/cloudy_day/raw_yaml/md_arrow_n.yaml"/>
 	<arg name="gui" default="false"/>
-		
-	<node name="yaml_read" type="yaml_read.py" pkg="reactive_control" respawn="false" output="screen" args="$(arg trajectory_file)">
+	<arg name="cart_control" default="true"/>
+
+	<node name="yaml_read" type="yaml_read.py" pkg="reactive_control" respawn="false" output="log" args="$(arg trajectory_file)">
 	</node>
 	
 	<group if="$(arg case_piecewise)">
@@ -25,10 +26,11 @@
 	</group>
 
 	<group if="$(arg case_raw)">
-		<node name="case_raw" type="case_raw.py" pkg="reactive_control" respawn="false" output="screen">
+		<node name="case_raw" type="case_raw.py" pkg="reactive_control" respawn="false" output="log">
 		</node>
 	</group>
 
+	<!-- Billard controller -->
 	<group if="$(arg single_integrator)">
 		<include file="$(find reactive_control)/launch/reactive_control_single_integrator.launch">
 		</include>
@@ -40,8 +42,12 @@
 		</include>
 	</group>
 
+	<!-- Jog arm -->
+<!-- 	<include file="$(find reactive_control)/launch/jog_arm_teleop.launch">
+	</include> -->
+	
 	<include file="$(find manos_gazebo)/launch/manos_gazebo.launch">
-		<arg name="cart_control" value="true"/>
+		<arg name="cart_control" value="$(arg cart_control)"/>
 		<arg name="gui" value="$(arg gui)"/>
 	</include>
 </launch>

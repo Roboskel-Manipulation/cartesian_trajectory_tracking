@@ -35,6 +35,7 @@ def main():
 	markerRaw.color.g = 0.0
 	markerRaw.color.b = 0.0
 	markerRaw.lifetime = rospy.Duration(100)
+	j=0
 	for i in range(len(fl)):
 		point = Keypoint3d_list()
 		if "RW" in fl[i]:
@@ -44,6 +45,12 @@ def main():
 			keypoint.points.point.x = float(fl[i+9][11:])
 			keypoint.points.point.y = float(fl[i+10][11:])
 			keypoint.points.point.z = float(fl[i+11][11:])
+			try:
+				if times[-1] > keypoint.points.header.stamp.to_sec() + 1 and keypoint.points.header.stamp.to_sec() != 0:
+					rospy.logwarn("End of points")
+					break
+			except Exception as e:
+				print (e)
 			point.keypoints.append(keypoint)
 			point_marker = Point()
 			point_marker.x = keypoint.points.point.x
@@ -52,13 +59,15 @@ def main():
 			markerRaw.points.append(point_marker)
 			pubRaw.publish(markerRaw)
 			pub.publish(point)
-
-			try:
-				rospy.sleep(keypoint.points.header.stamp.to_sec()-times[-1])
-				# rospy.loginfo('Slept for ' + str(times[-1]-keypoint.points.header.stamp.to_sec()))
-			except Exception as ex:
-				rospy.logwarn(ex)
-				rospy.sleep(10)
+			j += 1
+			rospy.loginfo("Published keypoint %d" %j)
+			rospy.sleep(0.047)
+			# try:
+			# 	rospy.sleep(keypoint.points.header.stamp.to_sec()-times[-1])
+			# 	rospy.loginfo('Slept for ' + str(keypoint.points.header.stamp.to_sec() - times[-1]))
+			# except Exception as ex:
+			# 	rospy.logwarn(ex)
+			# 	rospy.sleep(10)
 			times.append(keypoint.points.header.stamp.to_sec())
 
 	rospy.loginfo("Published all keypoints")

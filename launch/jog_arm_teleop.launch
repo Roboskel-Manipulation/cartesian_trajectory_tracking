@@ -1,0 +1,6 @@
+<?xml version="2.0"?>
+<launch>
+	<node name="jog_arm_teleop" pkg="reactive_control" type="jog_arm_teleop" respawn="false" output="screen">
+		<rosparam file="$(find reactive_control)/config/jog_arm_teleop.yaml" command="load"/>
+	</node>
+</launch>
