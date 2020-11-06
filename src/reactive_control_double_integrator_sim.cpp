@@ -1,7 +1,5 @@
 #include "reactive_control/reactive_control_double_integrator.h"
 
-float theta;
-
 void human_motion_callback(const geometry_msgs::PointStampedConstPtr human_msg){
 	received_point = true;
 	if (count <= 0){

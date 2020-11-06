@@ -1,6 +1,5 @@
 #include "reactive_control/reactive_control_double_integrator.h"
 
-
 bool valid_z = true;
 
 void human_motion_callback(const geometry_msgs::PointStampedConstPtr human_msg){

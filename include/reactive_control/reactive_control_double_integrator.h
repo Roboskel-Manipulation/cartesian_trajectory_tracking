@@ -57,7 +57,7 @@ int count = 0;
 float Dx, Dy, Dz, xOffset, yOffset, zOffset, var_gain, xGoal, yGoal, zGoal;
 bool received_point = false;
 bool var, sim, init_point = false, vel_flag=false, human_vel;
-float init_x, init_y, init_z, temp_z;
+float init_x, init_y, init_z, temp_z, theta;
 std_msgs::Float64 dis;
 std_msgs::Float64 gain;
 std::string ee_state_topic, ee_vel_command_topic;
