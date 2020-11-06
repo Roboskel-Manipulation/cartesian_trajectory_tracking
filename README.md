@@ -12,11 +12,4 @@ with 0.0005s delay on top of the Openpose delay (0.047s)
 * Downsampling-Interpolation: Publish interpolated points with 0.0005s delay on top of the Openpose delay (0.047s). Approximatelly
 at least in 8% of the points in the natural movements and in 32% of the points in the fast movements.
 
-<b> Robot Control </b>: The main functionality of the packege is the robot control. The control of the robot is based on this [Cartesian Velocity Controller](https://github.com/ThanasisTs/manos_control). At the moment, the framework results in the robot mimicing the human motion (visual teleoperation). For that purpose, two different infos are required:
-
-* Human Current Position
-* End Effector Current State
-
-The framework combines this information to produce commanded end effector velocities, which are then given to the cartesian velocity controller. The commanded velocities are extracted using the 3D coordinates are local attractors. Mathematically speaking, the equations for the extraction of the commanded velocities are:
-
-<img src="https://github.com/ThanasisTs/reactive_control/blob/master/Screenshot_20200717_144618.png"/>
+<b> Robot Control </b>: The main functionality of the packege is the robot control. The control of the robot is based on this [Cartesian Velocity Controller](https://github.com/ThanasisTs/manos_control). At the moment, the framework results in the robot mimicing the human motion (visual teleoperation).

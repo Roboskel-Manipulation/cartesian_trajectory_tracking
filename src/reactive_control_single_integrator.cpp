@@ -4,6 +4,7 @@ bool valid_z = true;
 
 void human_motion_callback(const geometry_msgs::PointStampedConstPtr human_msg){
 	received_point = true;
+	// Check for valid (no overextension and no self-collision) initial point)
 	if (count <= 0){
 		init_x = human_msg->point.x;
 		init_y = human_msg->point.y;
@@ -49,11 +50,12 @@ void human_motion_callback(const geometry_msgs::PointStampedConstPtr human_msg){
 	}
 
 	count += 1;
-
+	// Desired point 
 	des_x = human_msg->point.x + xOffset - dis_x;
 	des_y = human_msg->point.y + yOffset - dis_y;
 	des_z = human_msg->point.z + zOffset - dis_z;
 
+	// Check if desired point is valid
 	if (count > 1){
 		ROS_INFO_STREAM("Control point dis: " << sqrt(pow(des_x, 2) + pow(des_y, 2)));
 		if (sqrt(pow(des_x, 2) + pow(des_y, 2)) < self_col_dis and des_z < z_dis){
@@ -72,6 +74,7 @@ void human_motion_callback(const geometry_msgs::PointStampedConstPtr human_msg){
 
 			control_points_pub.publish(*desired_robot_position);
 
+			// Visualize human trajectory
 			marker_human->header.stamp = ros::Time::now();
 		    marker_human->points.push_back(desired_robot_position->point);
 		  	vis_human_pub.publish(*marker_human);
@@ -80,6 +83,7 @@ void human_motion_callback(const geometry_msgs::PointStampedConstPtr human_msg){
 }
 
 void state_callback (const trajectory_execution_msgs::PoseTwist::ConstPtr state_msg){
+	// Robot current position
 	robot_pose->pose.position.x = state_msg->pose.position.x;
 	robot_pose->pose.position.y = state_msg->pose.position.y;
 	robot_pose->pose.position.z = state_msg->pose.position.z;
@@ -87,14 +91,15 @@ void state_callback (const trajectory_execution_msgs::PoseTwist::ConstPtr state_
 
 
 	if (received_point){
+		// If the robot tends to hit the table, halt its motion
 		if (robot_pose->pose.position.z < 0.03){
-			valid_z = false;
 			vel_control->linear.x = 0;
 			vel_control->linear.y = 0;
 			vel_control->linear.z = 0;
 			pub.publish(*vel_control);
 			ROS_ERROR_STREAM("Invalid z point. Halting motion");
 		}		
+		// Get to the first point
 		if (valid_z and count == 1){
 			vel_control->linear.x = (init_x - robot_pose->pose.position.x);
 			vel_control->linear.y = (init_y - robot_pose->pose.position.y);
@@ -107,12 +112,10 @@ void state_callback (const trajectory_execution_msgs::PoseTwist::ConstPtr state_
 			vel_control->linear.z = abs(vel_control->linear.z) > VEL_Z_MAX_INIT ? VEL_Z_MAX_INIT*vel_control->linear.z/abs(vel_control->linear.z) : vel_control->linear.z;
 			pub.publish(*vel_control);
 		}
-		else if (valid_z and count != 0){
-			vis_robot_pub.publish(*marker_robot);
-			dis_all.data = sqrt(pow(desired_robot_position->point.x - robot_pose->pose.position.x, 2) 
-				+ pow(desired_robot_position->point.y - robot_pose->pose.position.y, 2));
-			dis_all_pub.publish(dis_all);
-			
+		// Follow the human trajectory
+		else if (valid_z and count != 0){			
+			// Construct gains based on euclidean distance
+			// D = D_eucl * ||x_h - x_r||
 			if (eucl_flag){
 				v1->push_back(robot_pose->pose.position.x);
 				v1->push_back(robot_pose->pose.position.y);
@@ -125,6 +128,8 @@ void state_callback (const trajectory_execution_msgs::PoseTwist::ConstPtr state_
 				v1->clear();
 				v2->clear();
 			}
+			// Construct gains based on exponential potential
+			// Intuitively, increase the gain as long as the distance decreases
 			else if (exp_flag){
 				x_error = abs(robot_pose->pose.position.x - desired_robot_position->point.x);
 				y_error = abs(robot_pose->pose.position.y - desired_robot_position->point.y);
@@ -134,6 +139,7 @@ void state_callback (const trajectory_execution_msgs::PoseTwist::ConstPtr state_
 				Dz = Ka/(1+exp(Ka_exp*(z_error-min_dis)))+Kb/(1+exp(-Kb_exp*(z_error-max_dis)))+c;
 				ROS_INFO("The distance is: %f", euclidean_distance(v1, v2));
 			}
+			// Publish the gains
 			gain_array.data.push_back(dis_points);
 			gain_array.data.push_back(Dx);
 			gain_array.data.push_back(Dy);
@@ -142,12 +148,14 @@ void state_callback (const trajectory_execution_msgs::PoseTwist::ConstPtr state_
 			gain_pub.publish(gain_array);
 			gain_array.data.clear();
 
+			// Spatial error
 			error->twist.linear.x = desired_robot_position->point.x - robot_pose->pose.position.x;
 			error->twist.linear.y = desired_robot_position->point.y - robot_pose->pose.position.y;
 			error->twist.linear.z = desired_robot_position->point.z - robot_pose->pose.position.z;
 			error->header.stamp = ros::Time::now();
 			error_pub.publish(*error);
 
+			// Velocity commands
 			vel_control->linear.x = Dx*error->twist.linear.x;
 			vel_control->linear.y = Dy*error->twist.linear.y;
 			vel_control->linear.z = Dz*error->twist.linear.z;
@@ -157,6 +165,14 @@ void state_callback (const trajectory_execution_msgs::PoseTwist::ConstPtr state_
 			vel_control_stamp->header.stamp = robot_pose->header.stamp;
 			vel_control_stamp_pub.publish(*vel_control_stamp);
 			pub.publish(*vel_control);
+
+			// Visualize the robot trajectory in Rviz
+			vis_robot_pub.publish(*marker_robot);
+
+			// Publish the distance between human and robot
+			dis_all.data = sqrt(pow(desired_robot_position->point.x - robot_pose->pose.position.x, 2) 
+				+ pow(desired_robot_position->point.y - robot_pose->pose.position.y, 2));
+			dis_all_pub.publish(dis_all);
 		}
 		if (init_point){
 			robot_state_pub.publish(*state_msg);

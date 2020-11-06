@@ -7,14 +7,17 @@
 	<arg name="single_integrator" default="true"/>
 	<arg name="trajectory_file" default="/home/ttsitos/Desktop/yaml_files/fast_gpu/cloudy_day/raw_yaml/md_arrow_n.yaml"/>
 
+	<!-- Read yaml and publish openpose points -->
 	<node name="yaml_read" type="yaml_read.py" pkg="reactive_control" respawn="false" output="log" args="$(arg trajectory_file)">
 	</node>
 	
+	<!-- raw openpose points -->
 	<group if="$(arg case_raw)">
 		<node name="case_raw" type="case_raw.py" pkg="reactive_control" respawn="false" output="screen">
 		</node>
 	</group>
 
+	<!-- Piecewise Bezier points -->
 	<group if="$(arg case_piecewise)">
 		 <node name="piecewise_bezier_constructor" type="reactive_piecewise_bezier.py" pkg="reactive_control" respawn="false" output="screen">
 		</node> 
@@ -23,16 +26,19 @@
 		</include>
 	</group>
 
+	<!-- Downsample-Interpolation points -->
 	<group if="$(arg case_downsampling)">		
 		<node name="downsampling_interpolation_constructor" type="reactive_std_downsampling.py" pkg="reactive_control" respawn="false" output="screen">
 		</node>
 	</group>
 
+	<!-- Single Integrator -->
 	<group if="$(arg single_integrator)">
 		<include file="$(find reactive_control)/launch/reactive_control_single_integrator.launch">
 		</include>
 	</group>
 
+	<!-- Double Integrator -->
 	<group unless="$(arg single_integrator)">
 		<include file="$(find reactive_control)/launch/reactive_control_double_integrator.launch">
 			<arg name="sim" default="false"/>

@@ -1,31 +1,15 @@
 #include "reactive_control/reactive_control_double_integrator.h"
 
-float theta;
-geometry_msgs::TwistStampedPtr error_1 = boost::make_shared<geometry_msgs::TwistStamped>();
-
-float euclidean_distance (std::shared_ptr<std::vector<float>> v1, std::shared_ptr<std::vector<float>> v2){
-	std::cout << robot_pose->pose.position.x << std::endl;
-	float temp = 0;
-	for (short int i=0; i<v1->size(); i++){
-		temp += pow((v1->at(i) - v2->at(i)), 2);
-	}
-	return sqrt(temp);
-}
 
 bool valid_z = true;
 
 void human_motion_callback(const geometry_msgs::PointStampedConstPtr human_msg){
 	received_point = true;
+	// Check if valid initial point
 	if (count <= 0){
 		init_x = human_msg->point.x;
 		init_y = human_msg->point.y;
 		init_z = human_msg->point.z;
-		
-		// float r = sqrt(pow(init_x, 2) + pow(init_y, 2));
-		// init_x2 = init_x/abs(init_x) * r * cos(atan(human_msg->point.y/human_msg->point.x) - theta);
-		// init_y2 = init_y/abs(init_y) * r * sin(atan(human_msg->point.y/human_msg->point.x) - theta);		
-		// init_z2 = init_z;
-
 		if (sqrt(pow(init_x, 2) + pow(init_y, 2)) < self_col_dis and init_z < z_dis){
 			count -= 1;
 			ROS_WARN_STREAM("Invalid initial point leading to self collision. Give another initial point");
@@ -36,9 +20,6 @@ void human_motion_callback(const geometry_msgs::PointStampedConstPtr human_msg){
 		}
 		else{
 			count = 0;
-			// xOffset2 = robot_pose->pose.position.x - init_x2;
-			// yOffset2 = robot_pose->pose.position.y - init_y2;
-			// zOffset2 = robot_pose->pose.position.z - init_z2;
 			xOffset = robot_pose->pose.position.x - human_msg->point.x;
 			yOffset = robot_pose->pose.position.y - human_msg->point.y;
 			zOffset = robot_pose->pose.position.z - human_msg->point.z;
@@ -54,14 +35,9 @@ void human_motion_callback(const geometry_msgs::PointStampedConstPtr human_msg){
 			dis_x = human_msg->point.x + xOffset - init_x;
 			dis_y = human_msg->point.y + yOffset - init_y;
 			dis_z = human_msg->point.z + zOffset - init_z;
-			// float r_new = sqrt(pow(human_msg->point.x, 2) + pow(human_msg->point.y, 2));
-			// dis_x2 = human_msg->point.x / abs(human_msg->point.x) * r_new * cos(atan(human_msg->point.y/human_msg->point.x) - theta) + xOffset2 - init_x2;
-			// dis_y2 = human_msg->point.y / abs(human_msg->point.y) * r_new * sin(atan(human_msg->point.y/human_msg->point.x) - theta) + yOffset2 - init_y2;
-			// dis_z2 = human_msg->point.z + zOffset2 - init_z2;
 			ROS_WARN_STREAM("The initial distances are " << dis_x << ", " << dis_y << ", " << dis_z);
 		}
 		
-		vis_robot_pub.publish(*marker_robot);
 		dis.data = sqrt(pow(desired_robot_position->point.x - robot_pose->pose.position.x, 2) 
 			+ pow(desired_robot_position->point.y - robot_pose->pose.position.y, 2));
 		dis_pub.publish(dis);
@@ -72,15 +48,11 @@ void human_motion_callback(const geometry_msgs::PointStampedConstPtr human_msg){
 	count += 1;
 
 	// Desired robot position
-	// float r = sqrt(pow(human_msg->point.x, 2) + pow(human_msg->point.y, 2));
-	// des_x2 = human_msg->point.x / abs(human_msg->point.x) * r * cos(atan(human_msg->point.y/human_msg->point.x) - theta) + xOffset2 - dis_x2;
-	// des_y2 = human_msg->point.y / abs(human_msg->point.y) * r * sin(atan(human_msg->point.y/human_msg->point.x) - theta) + yOffset2 - dis_y2;
-	// des_z2 = human_msg->point.z + zOffset2 - dis_z2;
-
 	des_x = human_msg->point.x + xOffset - dis_x;
 	des_y = human_msg->point.y + yOffset - dis_y;
 	des_z = human_msg->point.z + zOffset - dis_z;
 
+	// Check if valid desired point
 	if (count > 1){
 		ROS_INFO("Control point dis: %f", sqrt(pow(des_x, 2) + pow(des_y, 2)));
 		if (sqrt(pow(des_x, 2) + pow(des_y, 2)) < self_col_dis and des_z < z_dis){
@@ -94,13 +66,6 @@ void human_motion_callback(const geometry_msgs::PointStampedConstPtr human_msg){
 			ROS_INFO_STREAM("Control points: " << desired_robot_position->point.x << " " << desired_robot_position->point.y << " " << desired_robot_position->point.z);
 
 			// Transitioned human coordinates - Desired robot coordinates
-			// desired_robot_position->point.x = human_msg->point.x + xOffset2 - dis_x2;
-			// desired_robot_position->point.y = human_msg->point.y + yOffset2 - dis_y2;
-			// desired_robot_position->point.z = human_msg->point.z + zOffset2 - dis_z2;
-			// desired_robot_position->header.stamp = robot_pose->header.stamp;
-
-			// control_points_pub.publish(*desired_robot_position);
-
 			desired_robot_position->point.x = des_x;
 			desired_robot_position->point.y = des_y;
 			desired_robot_position->point.z = des_z;
@@ -113,6 +78,7 @@ void human_motion_callback(const geometry_msgs::PointStampedConstPtr human_msg){
 
 			control_points_pub.publish(*human_position);
 
+			// Visualize human trajectory
 			marker_human->header.stamp = ros::Time::now();
 		    marker_human->points.push_back(desired_robot_position->point);
 		  	vis_human_pub.publish(*marker_human);
@@ -137,14 +103,15 @@ void state_callback (const trajectory_execution_msgs::PoseTwist::ConstPtr state_
 	robot_velocity->header.stamp = ros::Time::now();
 	
 	if (received_point){
+		// Halt the robot motion if it tends to hit the table
 		if (robot_pose->pose.position.z < 0.03){
-			valid_z = false;
 			vel_control->linear.x = 0;
 			vel_control->linear.y = 0;
 			vel_control->linear.z = 0;
 			pub.publish(*vel_control);
 			ROS_ERROR_STREAM("Invalid z point. Halting motion");
 		}
+		// Get to the first point
 		if (valid_z and count == 1){
 			vel_control->linear.x = init_x - robot_pose->pose.position.x;
 			vel_control->linear.y = init_y - robot_pose->pose.position.y;
@@ -157,8 +124,8 @@ void state_callback (const trajectory_execution_msgs::PoseTwist::ConstPtr state_
 			vel_control->linear.z = abs(vel_control->linear.z) > VEL_Z_MAX_INIT ? VEL_Z_MAX_INIT*abs(vel_control->linear.z)/vel_control->linear.z : vel_control->linear.z;
 			pub.publish(*vel_control);
 		}
+		// Follow the human trajectory
 		else if (valid_z and count != 0){
-
 			// Positional error
 			error->twist.linear.x = desired_robot_position->point.x - robot_pose->pose.position.x;
 			error->twist.linear.y = desired_robot_position->point.y - robot_pose->pose.position.y;
@@ -171,11 +138,6 @@ void state_callback (const trajectory_execution_msgs::PoseTwist::ConstPtr state_
 			acc[1] = -Ky*robot_velocity->twist.linear.y + Dy*error->twist.linear.y;
 			acc[2] = -Kz*robot_velocity->twist.linear.z + Dz*error->twist.linear.z;
 			
-			error_1->twist.linear.x = desired_robot_position->point.x;// - robot_pose->pose.position.x;
-			error_1->twist.linear.y = desired_robot_position->point.y;// - robot_pose->pose.position.y;
-			error_1->twist.linear.z = desired_robot_position->point.z;// - robot_pose->pose.position.z;
-			error_1->header.stamp = ros::Time::now();
-			// error_pub.publish(*error_1);
 			
 			// Store previous commanded velocities			
 			vel_control_prev->linear.x = vel_control->linear.x;
@@ -197,8 +159,8 @@ void state_callback (const trajectory_execution_msgs::PoseTwist::ConstPtr state_
 			
 			// Publish velocites if not NaN
 			if (!std::isnan(vel_control->linear.x) and !std::isnan(vel_control->linear.y) and !std::isnan(vel_control->linear.y)){
-				// ROS_INFO_STREAM("Valid commanded velocity");
-				// ROS_INFO_STREAM("The control time cycle is " << vel_duration);
+				ROS_INFO_STREAM("Valid commanded velocity");
+				ROS_INFO_STREAM("The control time cycle is " << vel_duration);
 				vel_control_stamp_pub.publish(*vel_control_stamp);
 				pub.publish(*vel_control);
 			}
@@ -210,6 +172,8 @@ void state_callback (const trajectory_execution_msgs::PoseTwist::ConstPtr state_
 				vel_control->linear.y = vel_control_prev->linear.y;
 				vel_control->linear.z = vel_control_prev->linear.z;
 			}
+			// Visualize robot trajectory
+			vis_robot_pub.publish(*marker_robot);
 		}
 		if (init_point)
 			robot_state_pub.publish(*state_msg);
