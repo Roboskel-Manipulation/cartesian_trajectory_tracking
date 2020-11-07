@@ -209,12 +209,12 @@ int main(int argc, char** argv){
 	marker_human->type = visualization_msgs::Marker::LINE_STRIP;
 	marker_human->action = visualization_msgs::Marker::ADD;
 	marker_human->scale.x = 0.002;
-    marker_human->scale.y = 0.002;
-    marker_human->scale.z = 0.002;
-    marker_human->color.r = 0.0f;
-    marker_human->color.g = 1.0f;
-    marker_human->color.b = 0.0f;
-    marker_human->color.a = 1.0;
+	marker_human->scale.y = 0.002;
+	marker_human->scale.z = 0.002;
+	marker_human->color.r = 0.0f;
+	marker_human->color.g = 1.0f;
+	marker_human->color.b = 0.0f;
+	marker_human->color.a = 1.0;
   	marker_human->lifetime = ros::Duration(100);
 	
 	// Robot marker - Rviz
@@ -223,12 +223,12 @@ int main(int argc, char** argv){
 	marker_robot->type = visualization_msgs::Marker::LINE_STRIP;
 	marker_robot->action = visualization_msgs::Marker::ADD;
 	marker_robot->scale.x = 0.0035;
-    marker_robot->scale.y = 0.0035;
-    marker_robot->scale.z = 0.0035;
-    marker_robot->color.r = 0.0f;
-    marker_robot->color.g = 0.0f;
-    marker_robot->color.b = 1.0f;
-    marker_robot->color.a = 1.0;
+	marker_robot->scale.y = 0.0035;
+	marker_robot->scale.z = 0.0035;
+	marker_robot->color.r = 0.0f;
+	marker_robot->color.g = 0.0f;
+	marker_robot->color.b = 1.0f;
+	marker_robot->color.a = 1.0;
   	marker_robot->lifetime = ros::Duration(100);
   	
 
