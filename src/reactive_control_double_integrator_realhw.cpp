@@ -40,7 +40,11 @@ void human_motion_callback(const geometry_msgs::PointStampedConstPtr human_msg){
 		dis.data = sqrt(pow(desired_robot_position->point.x - robot_pose->pose.position.x, 2) 
 			+ pow(desired_robot_position->point.y - robot_pose->pose.position.y, 2));
 		dis_pub.publish(dis);
+		
+		// Visualize robot trajectory
 		marker_robot->points.push_back(robot_pose->pose.position);
+		vis_robot_pub.publish(*marker_robot);
+		
 		init_point = true;
 	}
 
@@ -81,6 +85,8 @@ void human_motion_callback(const geometry_msgs::PointStampedConstPtr human_msg){
 			marker_human->header.stamp = ros::Time::now();
 		    marker_human->points.push_back(desired_robot_position->point);
 		  	vis_human_pub.publish(*marker_human);
+
+
 		}
 	}
 }
@@ -171,8 +177,6 @@ void state_callback (const trajectory_execution_msgs::PoseTwist::ConstPtr state_
 				vel_control->linear.y = vel_control_prev->linear.y;
 				vel_control->linear.z = vel_control_prev->linear.z;
 			}
-			// Visualize robot trajectory
-			vis_robot_pub.publish(*marker_robot);
 		}
 		if (init_point)
 			robot_state_pub.publish(*state_msg);

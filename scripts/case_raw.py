@@ -82,7 +82,7 @@ def callback(msg):
 def main():
 	global pub
 	rospy.init_node("raw_points")
-	sub = rospy.Subscriber("raw_points_online", Keypoint3d_list, callback)
+	sub = rospy.Subscriber("transform_topic", Keypoint3d_list, callback)
 	pub = rospy.Publisher("trajectory_points", PointStamped, queue_size=10, latch=True)
 	rospy.spin()
 
