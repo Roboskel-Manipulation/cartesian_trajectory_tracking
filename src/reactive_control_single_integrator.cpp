@@ -15,7 +15,7 @@ void human_motion_callback(const geometry_msgs::PointStampedConstPtr human_msg){
 			count -= 1;
 			ROS_WARN_STREAM("Invalid initial point leading to self collision. Give another initial point");
 		}
-		else if (sqrt(pow(init_x, 2) + pow(init_z, 2)) > extention_dis){
+		else if (sqrt(pow(init_x, 2) + pow(init_y, 2) + pow(init_z, 2)) > extention_dis){
 			count -= 1;
 			ROS_WARN_STREAM("Invalid initial point leading to overextention. Give another initial point");
 		}
@@ -61,7 +61,7 @@ void human_motion_callback(const geometry_msgs::PointStampedConstPtr human_msg){
 		if (sqrt(pow(des_x, 2) + pow(des_y, 2)) < self_col_dis and des_z < z_dis){
 			ROS_WARN_STREAM("Control point leading to self collision.\nWaiting for valid control point");
 		}
-		else if (sqrt(pow(des_x, 2) + pow(des_y, 2)) > extention_dis){
+		else if (sqrt(pow(des_x, 2) + pow(des_y, 2) + pow(init_z, 2)) > extention_dis){
 			ROS_WARN_STREAM("Control point leading to overextention\nWaiting for valid control point");
 		}
 		else{

@@ -13,7 +13,7 @@ void human_motion_callback(const geometry_msgs::PointStampedConstPtr human_msg){
 			count -= 1;
 			ROS_WARN_STREAM("Invalid initial point leading to self collision. Give another initial point");
 		}
-		else if (sqrt(pow(init_x, 2) + pow(init_z, 2)) > extention_dis){
+		else if (sqrt(pow(init_x, 2) + pow(init_y, 2) + pow(init_z, 2)) > extention_dis){
 			count -= 1;
 			ROS_WARN_STREAM("Invalid initial point leading to overextention. Give another initial point");
 		}
@@ -94,6 +94,7 @@ void human_motion_callback(const geometry_msgs::PointStampedConstPtr human_msg){
 
 void state_callback (const trajectory_execution_msgs::PoseTwist::ConstPtr state_msg){
 	// Robot position
+	std::cout << ros::Time::now().toNSec() << std::endl;
 	robot_pose->pose.position.x = state_msg->pose.position.x;
 	robot_pose->pose.position.y = state_msg->pose.position.y;
 	robot_pose->pose.position.z = state_msg->pose.position.z;
