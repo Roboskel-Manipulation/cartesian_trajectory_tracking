@@ -47,7 +47,7 @@
 
 	<group unless="$(arg single_integrator)">
 		<include file="$(find reactive_control)/launch/reactive_control_double_integrator.launch">
-			<arg name="sim" default="false"/>
+			<arg name="gazebo" default="false"/>
 		</include>
 	</group>
 
