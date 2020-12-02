@@ -49,13 +49,8 @@
 	<!-- Double Integrator -->
 	<group unless="$(arg single_integrator)">
 		<include file="$(find reactive_control)/launch/reactive_control_double_integrator.launch">
-			<arg name="sim" default="true"/>
+			<arg name="gazebo" default="true"/>
 		</include>
 	</group>
-
-	<!-- Manos gazebo -->
-	<include file="$(find manos_gazebo)/launch/manos_gazebo.launch">
-		<arg name="gui" value="$(arg gui)"/>
-	</include>
 
 </launch>
