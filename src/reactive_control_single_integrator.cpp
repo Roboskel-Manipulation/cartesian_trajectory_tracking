@@ -233,9 +233,9 @@ int main(int argc, char** argv){
 	marker_robot->header.stamp = ros::Time::now();
 	marker_robot->type = visualization_msgs::Marker::LINE_STRIP;
 	marker_robot->action = visualization_msgs::Marker::ADD;
-	marker_robot->scale.x = 0.01;
-    marker_robot->scale.y = 0.01;
-    marker_robot->scale.z = 0.01;
+	marker_robot->scale.x = 0.0035;
+    marker_robot->scale.y = 0.0035;
+    marker_robot->scale.z = 0.0035;
     marker_robot->color.r = 0.0f;
     marker_robot->color.g = 0.0f;
     marker_robot->color.b = 1.0f;
