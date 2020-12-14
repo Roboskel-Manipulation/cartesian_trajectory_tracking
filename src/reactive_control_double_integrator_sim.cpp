@@ -1,9 +1,5 @@
 #include "reactive_control/reactive_control_double_integrator.h"
 
-
-bool valid_z = true;
-geometry_msgs::Twist zero_vel;
-
 double euclidean_distance(const geometry_msgs::PointConstPtr candidate_point, const geometry_msgs::PointConstPtr last_valid_point){
 	double dis_x = candidate_point->x - last_valid_point->x;
 	double dis_y = candidate_point->y - last_valid_point->y;

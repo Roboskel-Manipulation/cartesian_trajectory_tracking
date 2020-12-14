@@ -1,56 +1,7 @@
 #include "reactive_control/reactive_control_double_integrator.h"
 
-bool valid_z = true;
-geometry_msgs::Twist zero_vel;
-
-double euclidean_distance(const geometry_msgs::PointConstPtr candidate_point, const geometry_msgs::PointConstPtr last_valid_point){
-	double dis_x = candidate_point->x - last_valid_point->x;
-	double dis_y = candidate_point->y - last_valid_point->y;
-	double dis_z = candidate_point->z - last_valid_point->z;
-	return sqrt(pow(dis_x, 2) + pow(dis_y, 2) + pow(dis_z, 2));
-}
-
-void check_trajectory_point(const geometry_msgs::PointConstPtr candidate_point){
-	// Check self collision
-	if (sqrt(pow(candidate_point->x, 2) + pow(candidate_point->y, 2)) < self_collision_limit 
-		and candidate_point->z < z_limit){
-		ROS_WARN_STREAM("Control point leading to self collision. Waiting for valid control point");
-		limit_flag = true;
-	}
-	// Check overextension
-	else if (sqrt(pow(candidate_point->x, 2) + pow(candidate_point->y, 2) + 
-		pow(candidate_point->z, 2)) > overextension_limit){
-		std::cout << overextension_limit << std::endl;
-		ROS_WARN_STREAM("Control point leading to overextention Waiting for valid control point");
-		limit_flag = true;
-	}
-	else{
-		// If the robot is in self-collision or overextension and the trajectory point is valid,
-		// check the distance between robot's current position and the trajectory point
-		if (limit_flag){
-			if (euclidean_distance(candidate_point, last_valid_point) <= consecutive_points_distance){
-				desired_robot_position->point.x = candidate_point->x;
-				desired_robot_position->point.y = candidate_point->y;
-				desired_robot_position->point.z = candidate_point->z;
-				last_valid_point->x = candidate_point->x;
-				last_valid_point->y = candidate_point->y;
-				last_valid_point->z = candidate_point->z;
-				limit_flag = false;
-			}
-		}
-		// Valid trajectory point
-		else{
-			desired_robot_position->point.x = candidate_point->x;
-			desired_robot_position->point.y = candidate_point->y;
-			desired_robot_position->point.z = candidate_point->z;			
-			last_valid_point->x = candidate_point->x;
-			last_valid_point->y = candidate_point->y;
-			last_valid_point->z = candidate_point->z;
-			received_point = true;
-			limit_flag = false;
-		}
-	}
-}
+extern double euclidean_distance(const geometry_msgs::PointConstPtr candidate_point, const geometry_msgs::PointConstPtr last_valid_point);
+extern void check_trajectory_point(const geometry_msgs::PointConstPtr candidate_point);
 
 void trajectory_points_callback(const geometry_msgs::PointStampedConstPtr human_msg){
 	// If it is the first trajectory point, compute the translation offset
