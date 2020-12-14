@@ -3,7 +3,6 @@
 bool valid_z = true;
 
 void human_motion_callback(const geometry_msgs::PointStampedConstPtr human_msg){
-	received_point = true;
 	// Check for valid (no overextension and no self-collision) initial point)
 	if (count <= 0){
 		init_x = human_msg->point.x;
@@ -28,6 +27,7 @@ void human_motion_callback(const geometry_msgs::PointStampedConstPtr human_msg){
 			init_y += yOffset;
 			init_z += zOffset;
 			ROS_INFO_STREAM("Valid initial point");
+			received_point = true;
 		}
 	}
 	else{
@@ -46,7 +46,7 @@ void human_motion_callback(const geometry_msgs::PointStampedConstPtr human_msg){
 			+ pow(human_msg->point.y + yOffset - robot_pose->pose.position.y, 2));
 		dis_max_pub.publish(dis_max);
 		marker_robot->points.push_back(robot_pose->pose.position);
-		init_point = true;
+		// init_point = true;
 	}
 
 	count += 1;
@@ -173,10 +173,10 @@ void state_callback (const trajectory_execution_msgs::PoseTwist::ConstPtr state_
 			dis_all.data = sqrt(pow(desired_robot_position->point.x - robot_pose->pose.position.x, 2) 
 				+ pow(desired_robot_position->point.y - robot_pose->pose.position.y, 2));
 			dis_all_pub.publish(dis_all);
-		}
-		if (init_point){
 			robot_state_pub.publish(*state_msg);
 		}
+		// if (init_point){
+		// }
 	}
 }
 

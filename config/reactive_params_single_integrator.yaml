@@ -22,7 +22,7 @@ self_col_dis: 0.23
 z_dis: 0.23
 
 # Extention distance
-extention_dis: 0.6 #0.56-0.03
+extention_dis: 0.56 #0.56-0.03
 
 # sim or real HW
 sim: false

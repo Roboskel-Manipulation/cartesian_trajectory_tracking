@@ -46,6 +46,12 @@ geometry_msgs::TwistStampedPtr error = boost::make_shared<geometry_msgs::TwistSt
 
 geometry_msgs::TwistPtr vel_control_prev = boost::make_shared<geometry_msgs::Twist>();
 
+
+geometry_msgs::PointPtr init_point = boost::make_shared<geometry_msgs::Point>();
+geometry_msgs::PointPtr candidate_point = boost::make_shared<geometry_msgs::Point>();
+geometry_msgs::PointPtr last_valid_point = boost::make_shared<geometry_msgs::Point>();
+geometry_msgs::PointPtr jump_dis = boost::make_shared<geometry_msgs::Point>();
+
 std::shared_ptr<std::vector<float>> v1 = std::make_shared<std::vector<float>>();
 std::shared_ptr<std::vector<float>> v2 = std::make_shared<std::vector<float>>();
 
@@ -53,10 +59,13 @@ visualization_msgs::MarkerPtr marker_human = boost::make_shared<visualization_ms
 visualization_msgs::MarkerPtr marker_robot = boost::make_shared<visualization_msgs::Marker>();
 
 
+
+float self_collision_limit, z_limit, overextension_limit, consecutive_points_distance;
+bool limit_flag, init_point_flag = true, second_point_flag = true;
 int count = 0;
 float Dx, Dy, Dz, xOffset, yOffset, zOffset, var_gain, xGoal, yGoal, zGoal;
 bool received_point = false;
-bool var, sim, init_point = false, vel_flag=false, human_vel;
+bool var, sim, vel_flag=false, human_vel;
 float init_x, init_y, init_z, temp_z, theta;
 std_msgs::Float64 dis;
 std_msgs::Float64 gain;

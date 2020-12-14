@@ -1,7 +1,7 @@
 # Static gain
-Dx: 45
-Dy: 45
-Dz: 45
+Dx: 40
+Dy: 40
+Dz: 40
 Kx: 10
 Ky: 10
 Kz: 10
@@ -11,10 +11,12 @@ self_col_dis: 0.23
 z_dis: 0.23
 
 # Extention distance
-extention_dis: 0.60 #0.56-0.03
+extention_dis: 0.56 #0.56-0.03
 
 # Control scheme
 human_vel: false
 
 # rotation
 theta: 0
+
+consecutive_points_distance: 0.02
