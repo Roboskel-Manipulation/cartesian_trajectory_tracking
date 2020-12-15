@@ -52,6 +52,8 @@ geometry_msgs::PointPtr candidate_point = boost::make_shared<geometry_msgs::Poin
 geometry_msgs::PointPtr last_valid_point = boost::make_shared<geometry_msgs::Point>();
 geometry_msgs::PointPtr jump_dis = boost::make_shared<geometry_msgs::Point>();
 
+geometry_msgs::Twist zero_vel;
+
 std::shared_ptr<std::vector<float>> v1 = std::make_shared<std::vector<float>>();
 std::shared_ptr<std::vector<float>> v2 = std::make_shared<std::vector<float>>();
 
