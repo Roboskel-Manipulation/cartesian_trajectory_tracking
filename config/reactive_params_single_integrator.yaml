@@ -1,7 +1,11 @@
+# Topic names
+state_topic: "/manos_cartesian_velocity_controller/ee_state"
+command_topic: "/manos_cartesian_velocity_controller/command_cart_vel"
+
 # Static gain
-Dx: 4
-Dy: 4
-Dz: 4
+Dx: 3
+Dy: 3
+Dz: 3
 
 # Euclidean distance gain
 eucl_flag: false
@@ -18,11 +22,14 @@ Kb_exp: 34
 c: 0
 
 # Self collision distance
-self_col_dis: 0.23
-z_dis: 0.23
+self_collision_limit: 0.23
+z_limit: 0.23
 
 # Extention distance
-extention_dis: 0.56 #0.56-0.03
+overextension_limit: 0.56 #0.56-0.03
+
+# Consecutive control points distance
+consecutive_points_distance: 0.02
 
 # sim or real HW
 sim: false

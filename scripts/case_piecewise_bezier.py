@@ -19,7 +19,6 @@ start_flag = False
 end_flag = False
 start_threshold = None
 pub = None
-pub_all = None
 sum_time = 0
 second_point = False
 init_x, init_y, init_z = None, None, None
@@ -27,8 +26,9 @@ start_bz_time = None
 init_point = True
 
 def callback(data):
-	global init_point, start_bz_time, init_x, init_y, init_z, second_point, sum_time, count, pub, pub_all, xV_tmp, yV_tmp, zV_tmp, x, y, z, xFinal, yFinal, zFinal, xRaw, yRaw, zRaw, xMov, yMov, zMov, start_threshold, start_flag, end_flag
+	global init_point, start_bz_time, init_x, init_y, init_z, second_point, sum_time, count, pub, xV_tmp, yV_tmp, zV_tmp, x, y, z, xFinal, yFinal, zFinal, xRaw, yRaw, zRaw, xMov, yMov, zMov, start_threshold, start_flag, end_flag
 
+	# Get the RWrist keypoint
 	for i in range(len(data.keypoints)):
 		if (data.keypoints[i].name == "RWrist"):
 			print ('received point')
@@ -38,6 +38,7 @@ def callback(data):
 			timestamp = data.keypoints[i].points.header.stamp.to_sec()
 			break
 
+	# Store the points after the end of the motion
 	if end_flag:
 		if x_tmp != 0 and y_tmp != 0 and z_tmp != 0:
 			if len(xRaw) == 0 or (len(xRaw) >= 1 and abs(xRaw[-1] - x_tmp) < 0.1 and abs(yRaw[-1] - y_tmp) < 0.1 and abs(zRaw[-1] - z_tmp) < 0.1):
@@ -46,6 +47,7 @@ def callback(data):
 				zRaw.append(z_tmp)
 
 	count += 1
+	# Publish first point
 	if init_point and x_tmp < 0 and x_tmp >= -0.45 and y_tmp < 0 and y_tmp >= -0.45:
 		point = PointStamped()
 		point.point.x = x_tmp
@@ -60,12 +62,15 @@ def callback(data):
 		second_point = True
 		init_point = False
 
+	# if the motion has not ended, remove outliers and zeros (invalid trajectory points)
 	if not end_flag:
 		if x_tmp != 0 and y_tmp != 0 and z_tmp != 0:
 			if len(xRaw) == 0 or (len(xRaw) >= 1 and abs(xRaw[-1] - x_tmp) < 0.1 and abs(yRaw[-1] - y_tmp) < 0.1 and abs(zRaw[-1] - z_tmp) < 0.1):
 				xRaw.append(x_tmp)
 				yRaw.append(y_tmp)
 				zRaw.append(z_tmp)
+
+				# If valid trajectory points, check if the motion has started
 				if abs(x_tmp) < 0.6 and abs(y_tmp) < 0.6 and abs(z_tmp) < 0.6:
 					if len(xV_tmp) == start_threshold:
 						del xV_tmp[0]
@@ -88,6 +93,9 @@ def callback(data):
 							x.append(x_tmp)
 							y.append(y_tmp)
 							z.append(z_tmp)
+							
+							# If the motion has started, smooth the movement using 4 trajectory points with
+							# one overlapping point (the final point of one quadraple is the first of the next)
 							if len(x) == 4:
 								try:
 									rospy.wait_for_service("trajectory_smoothing")
@@ -135,6 +143,7 @@ def callback(data):
 									z = [z[-1]]
 								except rospy.ServiceException, e:
 									rospy.logerr("Service call failed: %s"%e)	
+							# Check if motion has ended
 							if std_x <= 0.01 and std_y <= 0.01 and std_z <= 0.01:
 								print("End movement at sample %d" %count)
 								rospy.loginfo("Time elapsed: %f" %sum_time)
@@ -142,12 +151,11 @@ def callback(data):
 					
 def movement_detection_node():
 	rospy.init_node("movement_detection_node")
-	global pub, pub_all, start_threshold
+	global pub, start_threshold
 	rospy.loginfo("Ready to record NEW movement")
 	start_threshold = 24
 	pub = rospy.Publisher("trajectory_points", PointStamped, queue_size=10, latch=True)	
-	pub_all = rospy.Publisher("trajectory_points_all", Point, queue_size=10)	
-	sub = rospy.Subscriber("raw_points_online", Keypoint3d_list, callback)
+	sub = rospy.Subscriber("transform_topic", Keypoint3d_list, callback)
 	rospy.spin()
 
 

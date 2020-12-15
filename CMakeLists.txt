@@ -35,15 +35,13 @@ include_directories(
 )
 
 
-add_executable (reactive_control_single_integrator src/reactive_control_single_integrator.cpp)
+add_executable (reactive_control_single_integrator src/reactive_control_single_integrator.cpp src/utils.cpp)
 target_link_libraries (reactive_control_single_integrator ${catkin_LIBRARIES})
 
-add_executable (reactive_control_double_integrator_sim src/reactive_control_double_integrator_sim.cpp)
+add_executable (reactive_control_double_integrator_sim src/reactive_control_double_integrator_sim.cpp src/utils.cpp)
 target_link_libraries (reactive_control_double_integrator_sim ${catkin_LIBRARIES})
 
 add_executable (reactive_control_double_integrator_realhw src/reactive_control_double_integrator_realhw.cpp src/utils.cpp)
 target_link_libraries (reactive_control_double_integrator_realhw ${catkin_LIBRARIES})
 
-add_executable (jog_arm_teleop src/jog_arm_teleop.cpp)
-target_link_libraries (jog_arm_teleop ${catkin_LIBRARIES})
 

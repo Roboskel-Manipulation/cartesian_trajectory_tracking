@@ -15,6 +15,7 @@ end = False
 def callback(msg):
 	global pub, x, y, z, init_flag, x_mov, y_mov, start, end, count
 	count += 1
+	# Get RWrist keypoint
 	for i in range(len(msg.keypoints)):
 		if msg.keypoints[i].name == "RWrist":
 			x_point = msg.keypoints[i].points.point.x
@@ -30,6 +31,9 @@ def callback(msg):
 				x.append(x_point)
 				y.append(y_point)
 				z.append(z_point)
+	
+	# Average the 15 first points to get the first point 
+	# in order to avoid the case where the first point is outlier
 	if not init_flag and len(x) == 15:
 		init_point = PointStamped()
 		init_point.header.stamp = time_point
@@ -42,6 +46,7 @@ def callback(msg):
 		print (init_point)
 
 	if init_flag:
+		# Check for outliers or zeros (invalid trajectory points)
 		if len(x_mov) == 0:
 			x_mov.append(x_point)
 			y_mov.append(y_point)
@@ -59,6 +64,7 @@ def callback(msg):
 			else:
 				valid_point = False
 
+		# If valid trajectory point, check if the motion has started
 		if len(x_mov) > 1 and valid_point:
 			if len(x_mov) == 25:
 				del x_mov[0]

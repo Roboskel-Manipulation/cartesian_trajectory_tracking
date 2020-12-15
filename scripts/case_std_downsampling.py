@@ -28,6 +28,7 @@ time_debug = {}
 timestamp = None
 x_init, y_init, z_init = [], [], []
 
+# Interpolate points in the line segment between p1 and p2
 def interpolation(p1, p2, dis, dur):
 	global timestamp, x, y, z, ds_thres, pub, num_points, count_inter
 	num_inter_points = dis//ds_thres
@@ -59,6 +60,8 @@ def callback(data):
 	global timestamp, init_point, times, num_points, sum_time, x, y, z, xRaw, yRaw, zRaw, xV_tmp, yV_tmp, zV_tmp, start_threshold, ds_thres, ip_thres, init_point, end_flag, start_flag, count
 	global x_init, y_init, z_init
 	start_time = rospy.get_time()
+
+	# Get RWrist keypoint
 	for i in range(len(data.keypoints)):
 		if (data.keypoints[i].name == "RWrist"):
 			x_tmp = data.keypoints[i].points.point.x
@@ -76,6 +79,8 @@ def callback(data):
 	
 	count_points.append(count)
 	count += 1
+	# Average the 15 first points to get the first point 
+	# in order to avoid the case where the first point is outlier	
 	if init_point and len(x_init) == 15:
 		point = PointStamped()
 		point.point.x = np.mean(x_init)
@@ -87,6 +92,7 @@ def callback(data):
 
 	if not init_point:
 		if not end_flag:
+			# Check for outliers or zeros (invalid trajectory points)
 			if x_tmp != 0 and y_tmp != 0 and z_tmp != 0:
 				if len(xRaw) == 0 or (len(xRaw) >= 1 and abs(xRaw[-1] - x_tmp) < 0.1 and abs(yRaw[-1] - y_tmp) < 0.1 and abs(zRaw[-1] - z_tmp) < 0.1):
 					xRaw.append(x_tmp)
@@ -106,6 +112,9 @@ def callback(data):
 						if (not start_flag) and (std_x > 0.01 or std_y > 0.01 or std_z > 0.01):
 							print("Start movement at sample %d" %count)
 							start_flag = True
+						
+						# If motion has started, check if there is a need to downsample 
+						# the points (high points density) or interpolate points (sparse points)
 						if start_flag:
 							if len(x) == 0:
 								x.append(x_tmp)
@@ -144,6 +153,7 @@ def callback(data):
 								else:
 									num_points += 1
 									# print (num_points)
+							# Check if motion has ended
 							if std_x <= 0.01 and std_y <= 0.01 and std_z <= 0.01:
 								print("End movement at sample %d" %count)
 								rospy.loginfo("Time elapsed: %f" %sum_time)
@@ -154,7 +164,7 @@ def movement_detection_node():
 	rospy.init_node("movement_detection_downsampling_node")
 	print ("Started node")
 	pub = rospy.Publisher("trajectory_points", PointStamped, queue_size=10, latch=True)
-	sub = rospy.Subscriber("raw_points_online", Keypoint3d_list, callback)
+	sub = rospy.Subscriber("transform_topic", Keypoint3d_list, callback)
 	rospy.spin()
 
 
