@@ -21,13 +21,13 @@
 
 	<!-- Raw openpose points -->
 	<group if="$(arg case_raw)">
-		<node name="raw_points_process" type="case_raw.py" pkg="reactive_control" respawn="false" output="log">
+		<node name="raw_points_process" type="case_raw.py" pkg="trajectory_process_utils" respawn="false" output="log">
 		</node>
 	</group>
  
 	<!-- Piecewise Bezier points -->
 	<group if="$(arg case_bezier)">
-		 <node name="piecewise_bezier_constructor" type="case_piecewise_bezier.py" pkg="reactive_control" respawn="false" output="screen">
+		 <node name="piecewise_bezier_constructor" type="case_piecewise_bezier.py" pkg="trajectory_process_utils" respawn="false" output="screen">
 		</node> 
 		
 		<include file="$(find trajectory_process_utils)/launch/trajectory_smoothing.launch">
@@ -36,7 +36,7 @@
 
 	<!-- Downsampling-Interpolation points -->
 	<group if="$(arg case_downsampling)">		
-		<node name="downsampling_interpolation_constructor" type="case_std_downsampling.py" pkg="reactive_control" respawn="false" output="screen">
+		<node name="downsampling_interpolation_constructor" type="case_std_downsampling.py" pkg="trajectory_process_utils" respawn="false" output="screen">
 		</node>
 	</group>
 	

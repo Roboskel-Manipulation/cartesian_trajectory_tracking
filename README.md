@@ -1,41 +1,44 @@
 # A ROS package for real-time teleoperation of a robotic manipulator (UR3 Cobot)
 
-# Description
-<b>Overall Functionality</b>: The goal of this project is the development of a ROS-based framework for real-time teleoperation of a robotic manipulator. The interaction is based on visual input, and specifically the [Openpose](https://github.com/CMU-Perceptual-Computing-Lab/openpose) project is utilized for the recording of the human motion. The position of the human wrist is considered the desired position of the robot's end effector. Currently, the human can control the end effector's position and not the orientation.
+<b>Overall Functionality</b>: The goal of this project is the development of a ROS-based framework for real-time teleoperation of a robotic manipulator. Currently, the human can control the end effector's position and not the orientation.
 
-<b>Input Control Points</b>: The human motion is recorded using Openpose and 3D coordinates of the human right wrist are computed. These coordinates are expressed in a global reference frame ("/base_link") and are utilized either directly or indirectly as input control points to the robot. The 'directly' term means that no preprocessing of the 3D coordinates happens, while the 'indirectly' terms means that a preproccesing procedure exists. 
+<b> Human Input </b>
+The interaction is based on visual input. An RGB-D camera is used for the human monitoring and the [Openpose](https://github.com/CMU-Perceptual-Computing-Lab/openpose) project is utilized for the human localization. The wrist pixels are mapped to 3D coordinates expressed in a static reference frame and are used as potential trajectory points for the control of the robot's end effector position. For the acquisition of the 3D RWrist coordinates from the raw RGB image, [this repo](https://github.com/ThanasisTs/openpose_utils) is utilized.
 
-<b> Preprocess of the 3D Human Coordinates </b>: Two different methods are utilized in the preprocessing stage aiming to denoising the 3D coordinates:
+<b> Preprocess of the 3D Human Coordinates </b>: The preprocessing stage of the 3D coordinates consists of 2 methods:
+* Removal of outliers and NaN points
+* Trajectory smoothing
 
-* Piecewise Bezier: Every 4 3D Keyopints construct a bezier of 20 points and keep only these whose distance is greater than 5mm. Publish each point with 0.0005s delay on top of the Openpose delay (0.047s)
+For the trajectory smoothing, two methods can be used:
+* Piecewise Bezier
+* Downsamplint - Interpolation
 
-* Downsampling-Interpolation: Interpolate points when the distance between consecutive 3D Keypoints is greater than 2.4cm and remove keypoints whose distance from the previous keypoint is less than 1.2cm. 
+[This repo](https://github.com/ThanasisTs/trajectory_process_utils) provides the utility for the preprocessing stage. The output points of this stage are referred to as <em> trajectory points </em>.
 
-<b> Robot Control </b>: The main functionality of the packege is the robot control. The control of the robot is based on this [Cartesian Velocity Controller](https://github.com/ThanasisTs/manos_control)(CVC). There are two control frameworks which generate velocity commands which are fed to the CVC.
+<b> Robot Motion Generation </b>: The robot accepts the <em> trajectory points </em> and first checks if they lead it to self collision or overextension. If that is not the case, then they are considered valid and are referred to as <em> control points </em>.
 
-* Single Integrator: The single integrator model generates velocities based on the spatial error between the human position and the end effector's current position.
-The state of the end effector consists of its pose.
+The generation of the robot motion is based on this [Cartesian Velocity Controller](https://github.com/ThanasisTs/manos_control)(CVC), which accepts cartesian velocity commands. The generation of the commands is based on two frameworks. 
 
-* Double Integrator: The double integrator model generates velocities based on computed accelration. The acceleration is constructed by the spatial error between the human position and the end effector's current position, and the end effector's current velocity. The state of the end effector consists of its pose and its twist.
+* Single Integrator: The single integrator model generates velocities based on the spatial error between the control points and the end effector's current position. The state of the end effector consists of its pose.
+
+* Double Integrator: The double integrator model generates velocities based on computed acceleration. The acceleration is constructed by the spatial error between the control points and the end effector's current position, and the end effector's current velocity. The state of the end effector consists of its pose and its twist.
 
 Once the end effector's commanded velocities have been computed, they are sent to the CVC, which maps them to joint velocities using IK.
 
 # Dependencies
 This repo depends on:
-* Keypoint 3D matching repo [here](https://github.com/ThanasisTs/openpose_utils/tree/master/keypoint_3d_matching) for creating the control input (human position).
-* Trajectory process [here](https://github.com/ThanasisTs/trajectory_process_utils) for processing the openpose points.
-* ROS messages [here](https://github.com/ThanasisTs/trajectory_execution_pkg/tree/master/trajectory_execution_msgs)
+* End effector state msgs [here](https://github.com/ThanasisTs/trajectory_execution_pkg/tree/master/trajectory_execution_msgs).
 
 # Run
 In a terminal run
 `roslaunch reactive_control reactive_framework.launch`
 
 <b> Arguments </b>
-* case_raw: True for raw 3D keypoints
+* case_raw: True for 3D keypoints
 * case_bezier: True for bezier keypoints
 * case_downsampling: True for downsampled/interpolated keypoints
 * single_integrator: True for single integrator framework (False for double)
-* keypoints: True when 3D keypoints are played through a rosbag (False when they are generated using an RGB-D camera and Openpose)
+* keypoints: True if 3D keypoints are generated by rosbags (False if they are generated using an RGB-D camera and Openpose)
 * sim: True if use_sim_time needs to be set to true
 * live_camera: True if frames are generated by an RGB-D camera (False if they are generated by rosbags)
 * gazebo: True is using gazebo
