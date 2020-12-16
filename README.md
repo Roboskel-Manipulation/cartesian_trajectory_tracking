@@ -26,12 +26,14 @@ The generation of the robot motion is based on this [Cartesian Velocity Controll
 Once the end effector's commanded velocities have been computed, they are sent to the CVC, which maps them to joint velocities using IK.
  
 <b> Dependencies </b>
+
 This repo depends on:
 * End effector state msgs [here](https://github.com/ThanasisTs/trajectory_execution_pkg/tree/master/trajectory_execution_msgs).
 
 <b> Run </b>
+
 In a terminal run
-`roslaunch reactive_control reactive_framework.launch`
+`roslaunch reactive_control reactive_framework.launch <args>`
 
 <b> Arguments </b>
 * case_raw: True for 3D keypoints
