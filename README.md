@@ -24,12 +24,12 @@ The generation of the robot motion is based on this [Cartesian Velocity Controll
 * Double Integrator: The double integrator model generates velocities based on computed acceleration. The acceleration is constructed by the spatial error between the control points and the end effector's current position, and the end effector's current velocity. The state of the end effector consists of its pose and its twist.
 
 Once the end effector's commanded velocities have been computed, they are sent to the CVC, which maps them to joint velocities using IK.
-
-# Dependencies
+ 
+<b> Dependencies </b>
 This repo depends on:
 * End effector state msgs [here](https://github.com/ThanasisTs/trajectory_execution_pkg/tree/master/trajectory_execution_msgs).
 
-# Run
+<b> Run </b>
 In a terminal run
 `roslaunch reactive_control reactive_framework.launch`
 
