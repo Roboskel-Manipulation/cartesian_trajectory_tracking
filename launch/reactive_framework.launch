@@ -40,17 +40,10 @@
 		</node>
 	</group>
 	
-	<!-- Single Integrator -->
-	<group if="$(arg single_integrator)">
-		<include file="$(find reactive_control)/launch/reactive_control_single_integrator.launch">
-		</include>
-	</group>
 
-	<!-- Double Integrator -->
-	<group unless="$(arg single_integrator)">
-		<include file="$(find reactive_control)/launch/reactive_control_double_integrator.launch">
-			<arg name="gazebo" default="$(arg gazebo)"/>
-		</include>
-	</group>
+	<include file="$(find reactive_control)/launch/reactive_control.launch">
+		<arg name="single_integrator" default="$(arg single_integrator)"/>
+		<arg name="gazebo" default="$(arg gazebo)"/>
+	</include>
 
 </launch>
