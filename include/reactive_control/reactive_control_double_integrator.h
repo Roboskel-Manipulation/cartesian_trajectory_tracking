@@ -36,9 +36,6 @@ geometry_msgs::TwistStampedPtr spatial_error = boost::make_shared<geometry_msgs:
 // Zero velocity used for halting robot motion
 geometry_msgs::Twist zero_vel;
 
-// Marker messages for RViz visualization
-visualization_msgs::MarkerPtr marker_human = boost::make_shared<visualization_msgs::Marker>();
-visualization_msgs::MarkerPtr marker_robot = boost::make_shared<visualization_msgs::Marker>();
 
 // Gain variables
 float Dx, Dy, Dz, Kx, Ky, Kz;
@@ -51,6 +48,9 @@ float control_cycle_duration;
 // Defined in utils.h
 extern geometry_msgs::PointPtr last_valid_point, init_point, jump_dis, candidate_point;
 extern geometry_msgs::PointStampedPtr desired_robot_position;
+
+extern visualization_msgs::MarkerPtr marker_human;
+extern visualization_msgs::MarkerPtr marker_robot;
 
 extern float self_collision_limit, z_limit, overextension_limit, consecutive_points_distance;
 extern bool limit_flag, init_point_flag, second_point_flag;

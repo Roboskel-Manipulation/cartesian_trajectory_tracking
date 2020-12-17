@@ -2,6 +2,7 @@
 #include <geometry_msgs/Point.h>
 #include <geometry_msgs/PointStamped.h>
 #include <geometry_msgs/PoseStamped.h>
+#include <visualization_msgs/Marker.h>
 
 // check robot limits variables
 float self_collision_limit, z_limit, overextension_limit, consecutive_points_distance;
@@ -30,3 +31,7 @@ geometry_msgs::PointPtr candidate_point = boost::make_shared<geometry_msgs::Poin
 
 // Distance between first and second trajectory points
 geometry_msgs::PointPtr jump_dis = boost::make_shared<geometry_msgs::Point>();
+
+// Marker messages for RViz visualization
+visualization_msgs::MarkerPtr marker_human = boost::make_shared<visualization_msgs::Marker>();
+visualization_msgs::MarkerPtr marker_robot = boost::make_shared<visualization_msgs::Marker>();

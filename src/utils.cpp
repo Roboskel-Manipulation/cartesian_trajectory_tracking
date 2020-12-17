@@ -87,8 +87,13 @@ void trajectory_points_callback(const geometry_msgs::PointStampedConstPtr human_
 
 		// Check if the trajectory point is valid and update the desired trajectory point accordingly
 		check_trajectory_point(candidate_point);
+		
+		// Visualize in RViz
 		if (motion_started){
-
+			marker_robot->points.push_back(robot_pose->pose.position);
+			marker_human->points.push_back(desired_robot_position->point);
+			vis_human_pub.publish(*marker_human);
+			vis_robot_pub.publish(*marker_robot);
 		}
 	}
 }

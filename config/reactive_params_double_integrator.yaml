@@ -1,6 +1,6 @@
 # Topic names
-state_topic: "/manos_cartesian_velocity_controller_sim/ee_state"
-command_topic: "/manos_cartesian_velocity_controller_sim/command_cart_vel"
+state_topic: "/manos_cartesian_velocity_controller/ee_state"
+command_topic: "/manos_cartesian_velocity_controller/command_cart_vel"
 
 # Static gain
 Dx: 40
