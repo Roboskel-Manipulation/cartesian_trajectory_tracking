@@ -14,10 +14,11 @@
 
 
 // Publishers
-ros::Publisher command_pub, command_stamp_pub, spatial_error_pub, robot_state_pub, vis_human_pub, vis_robot_pub, control_points_pub;
+ros::Publisher command_pub, command_stamp_pub, spatial_error_pub, robot_state_pub;
+extern ros::Publisher vis_human_pub, vis_robot_pub, control_points_pub;
 
 // Current ee pose
-geometry_msgs::PoseStampedPtr robot_pose = boost::make_shared<geometry_msgs::PoseStamped>();
+extern geometry_msgs::PoseStampedPtr robot_pose;
 
 // Commaded acceleration
 geometry_msgs::AccelStampedPtr acc = boost::make_shared<geometry_msgs::AccelStamped>();
@@ -31,20 +32,6 @@ geometry_msgs::TwistStampedPtr vel_control_stamp = boost::make_shared<geometry_m
 // Spatial Error (Desired position - current position)
 geometry_msgs::TwistStampedPtr spatial_error = boost::make_shared<geometry_msgs::TwistStamped>();
 
-// First trajectory point
-geometry_msgs::PointPtr init_point = boost::make_shared<geometry_msgs::Point>();
-
-// Current control point (valid trajectory point)
-geometry_msgs::PointStampedPtr desired_robot_position = boost::make_shared<geometry_msgs::PointStamped>();
-
-// Last control point (valid trajectory point)
-geometry_msgs::PointPtr last_valid_point = boost::make_shared<geometry_msgs::Point>();
-
-// Current trajectory point
-geometry_msgs::PointPtr candidate_point = boost::make_shared<geometry_msgs::Point>();
-
-// distance between first and second trajectory points
-geometry_msgs::PointPtr jump_dis = boost::make_shared<geometry_msgs::Point>();
 
 // Zero velocity used for halting robot motion
 geometry_msgs::Twist zero_vel;
@@ -53,20 +40,21 @@ geometry_msgs::Twist zero_vel;
 visualization_msgs::MarkerPtr marker_human = boost::make_shared<visualization_msgs::Marker>();
 visualization_msgs::MarkerPtr marker_robot = boost::make_shared<visualization_msgs::Marker>();
 
-// Variables for checking trajectory points for self-collision or overextension
-float self_collision_limit, z_limit, overextension_limit, consecutive_points_distance;
-bool limit_flag, init_point_flag = true, second_point_flag = true;
-
 // Gain variables
 float Dx, Dy, Dz, Kx, Ky, Kz;
-
-// Translation offset between human workspace and robot workspace
-float xOffset, yOffset, zOffset;
-
-// Produce velocity commands if received_point == true
-bool received_point = false;
 
 // Topic names
 std::string ee_state_topic, ee_vel_command_topic;
 
 float control_cycle_duration;
+
+// Defined in utils.h
+extern geometry_msgs::PointPtr last_valid_point, init_point, jump_dis, candidate_point;
+extern geometry_msgs::PointStampedPtr desired_robot_position;
+
+extern float self_collision_limit, z_limit, overextension_limit, consecutive_points_distance;
+extern bool limit_flag, init_point_flag, second_point_flag;
+
+extern float xOffset, yOffset, zOffset;
+
+extern bool motion_started;

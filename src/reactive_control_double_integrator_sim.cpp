@@ -26,7 +26,7 @@ void ee_state_callback (const trajectory_execution_msgs::PoseTwist::ConstPtr sta
 	robot_pose->header.stamp = ros::Time::now();
 
 	// Follow human trajectory
-	if (received_point){
+	if (motion_started){
 		// Spatial error
 		spatial_error->twist.linear.x = desired_robot_position->point.x - robot_pose->pose.position.x;
 		spatial_error->twist.linear.y = desired_robot_position->point.y - robot_pose->pose.position.y;

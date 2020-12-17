@@ -4,18 +4,29 @@
 #include <geometry_msgs/PoseStamped.h>
 
 // check robot limits variables
-extern float self_collision_limit, z_limit, overextension_limit, consecutive_points_distance;
-extern bool limit_flag, received_point;
-extern geometry_msgs::PointPtr last_valid_point;
-
-// Desired trajectory points used by the controller
-extern geometry_msgs::PointStampedPtr desired_robot_position;
+float self_collision_limit, z_limit, overextension_limit, consecutive_points_distance;
+bool limit_flag, motion_started = false;
+float xOffset_limit=0, yOffset_limit=0, zOffset_limit=0;
 
 // Control points Publisher
-extern ros::Publisher control_points_pub;
+ros::Publisher control_points_pub, vis_human_pub, vis_robot_pub;
 
 // Variables used in the trajectory points callback
-extern bool init_point_flag, second_point_flag;
-extern float xOffset, yOffset, zOffset;
-extern geometry_msgs::PoseStampedPtr robot_pose;
-extern geometry_msgs::PointPtr init_point, jump_dis, candidate_point;
+bool init_point_flag = true, second_point_flag = true;
+float xOffset, yOffset, zOffset;
+geometry_msgs::PoseStampedPtr robot_pose = boost::make_shared<geometry_msgs::PoseStamped>();
+
+// First trajectory point
+geometry_msgs::PointPtr init_point = boost::make_shared<geometry_msgs::Point>();
+
+// Current control point (valid trajectory point)
+geometry_msgs::PointStampedPtr desired_robot_position = boost::make_shared<geometry_msgs::PointStamped>();
+
+// Last control point (valid trajectory point)
+geometry_msgs::PointPtr last_valid_point = boost::make_shared<geometry_msgs::Point>();
+
+// Current trajectory point
+geometry_msgs::PointPtr candidate_point = boost::make_shared<geometry_msgs::Point>();
+
+// Distance between first and second trajectory points
+geometry_msgs::PointPtr jump_dis = boost::make_shared<geometry_msgs::Point>();
