@@ -28,12 +28,15 @@ void check_trajectory_point(const geometry_msgs::PointConstPtr candidate_point){
 			// check if the next valid point is at most `consecutive_points_distance`
 			// meters apart from the last valid point
 			if (euclidean_distance(candidate_point, last_valid_point) < consecutive_points_distance){
-				desired_robot_position->point.x = candidate_point->x;
-				desired_robot_position->point.y = candidate_point->y;
-				desired_robot_position->point.z = candidate_point->z;
-				last_valid_point->x = candidate_point->x;
-				last_valid_point->y = candidate_point->y;
-				last_valid_point->z = candidate_point->z;
+				xOffset_limit = candidate_point->x - last_valid_point->x;
+				yOffset_limit = candidate_point->y - last_valid_point->y;
+				zOffset_limit = candidate_point->z - last_valid_point->z;
+				desired_robot_position->point.x = candidate_point->x - xOffset_limit;
+				desired_robot_position->point.y = candidate_point->y - yOffset_limit;
+				desired_robot_position->point.z = candidate_point->z - zOffset_limit;
+				last_valid_point->x = candidate_point->x - xOffset_limit;
+				last_valid_point->y = candidate_point->y - yOffset_limit;
+				last_valid_point->z = candidate_point->z - zOffset_limit;
 				limit_flag = false;
 				control_points_pub.publish(*desired_robot_position);
 			}
@@ -41,13 +44,13 @@ void check_trajectory_point(const geometry_msgs::PointConstPtr candidate_point){
 		// Publish the trajectory point if the robot is not in self-collision / overextension state
 		// and the point does not lead to such a state
 		else{
-			desired_robot_position->point.x = candidate_point->x;
-			desired_robot_position->point.y = candidate_point->y;
-			desired_robot_position->point.z = candidate_point->z;			
-			last_valid_point->x = candidate_point->x;
-			last_valid_point->y = candidate_point->y;
-			last_valid_point->z = candidate_point->z;
-			received_point = true;
+			desired_robot_position->point.x = candidate_point->x - xOffset_limit;
+			desired_robot_position->point.y = candidate_point->y - yOffset_limit;
+			desired_robot_position->point.z = candidate_point->z - zOffset_limit;
+			last_valid_point->x = candidate_point->x - xOffset_limit;
+			last_valid_point->y = candidate_point->y - yOffset_limit;
+			last_valid_point->z = candidate_point->z - zOffset_limit;
+			motion_started = true;
 			limit_flag = false;
 			control_points_pub.publish(*desired_robot_position);
 		}
@@ -69,7 +72,7 @@ void trajectory_points_callback(const geometry_msgs::PointStampedConstPtr human_
 		init_point_flag = false;
 	}
 	// Omit the distance between the first and second trajectory points,
-	// because it causes abrupt beginning of the robot motion
+	// because it causes abrupt start of the robot motion
 	else if (second_point_flag){
 		jump_dis->x = human_msg->point.x - init_point->x;
 		jump_dis->y = human_msg->point.y - init_point->y;
@@ -84,5 +87,8 @@ void trajectory_points_callback(const geometry_msgs::PointStampedConstPtr human_
 
 		// Check if the trajectory point is valid and update the desired trajectory point accordingly
 		check_trajectory_point(candidate_point);
+		if (motion_started){
+
+		}
 	}
 }
