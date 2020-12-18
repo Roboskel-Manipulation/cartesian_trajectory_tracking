@@ -13,7 +13,7 @@ find_package(catkin REQUIRED COMPONENTS
 	std_msgs
 	geometry_msgs
 	visualization_msgs
-	trajectory_execution_msgs
+	cartesian_state_msgs
 )
 
 
@@ -22,7 +22,7 @@ catkin_package(
 		${THIS_PACKAGE_INCLUDE_DIRS}
  		include
 # 	LIBRARIES reactive_control
- 	CATKIN_DEPENDS trajectory_execution_msgs visualization_msgs geometry_msgs
+ 	CATKIN_DEPENDS cartesian_state_msgs visualization_msgs geometry_msgs
 # 	DEPENDS system_lib
 )
 

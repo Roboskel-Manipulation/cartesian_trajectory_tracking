@@ -3,7 +3,7 @@
 #include <geometry_msgs/TwistStamped.h>
 #include <geometry_msgs/PointStamped.h>
 #include <geometry_msgs/PoseStamped.h>
-#include <trajectory_execution_msgs/PoseTwist.h>
+#include <cartesian_state_msgs/PoseTwist.h>
 #include <visualization_msgs/Marker.h>
 
 #include <tf/transform_datatypes.h>

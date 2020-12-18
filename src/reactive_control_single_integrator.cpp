@@ -5,7 +5,7 @@ extern void check_trajectory_point(const geometry_msgs::PointConstPtr candidate_
 extern void trajectory_points_callback(const geometry_msgs::PointStampedConstPtr human_msg);
 
 // Velcocity control callback 
-void ee_state_callback (const trajectory_execution_msgs::PoseTwist::ConstPtr state_msg){	
+void ee_state_callback (const cartesian_state_msgs::PoseTwist::ConstPtr state_msg){	
 	// Current robot pose
 	robot_pose->pose.position.x = state_msg->pose.position.x;
 	robot_pose->pose.position.y = state_msg->pose.position.y;
@@ -146,8 +146,8 @@ int main(int argc, char** argv){
   	marker_robot->lifetime = ros::Duration(100);
 
   	// Topic names
-  	n.param("reactive_control_node/state_topic", ee_state_topic, std::string("/manos_cartesian_velocity_controller/ee_state"));
-  	n.param("reactive_control_node/command_topic", ee_vel_command_topic, std::string("/manos_cartesian_velocity_controller/command_cart_vel"));
+  	n.param("reactive_control_node/state_topic", ee_state_topic, std::string("/ur3_cartesian_velocity_controller/ee_state"));
+  	n.param("reactive_control_node/command_topic", ee_vel_command_topic, std::string("/ur3_cartesian_velocity_controller/command_cart_vel"));
 
   	// check if yaml params are correctly set
   	if (sim){
@@ -176,7 +176,7 @@ int main(int argc, char** argv){
   	
 	// Publishers
 	command_pub = n.advertise<geometry_msgs::Twist>(ee_vel_command_topic, 100);
-	robot_state_pub = n.advertise<trajectory_execution_msgs::PoseTwist>("/ee_state_topic", 100);
+	robot_state_pub = n.advertise<cartesian_state_msgs::PoseTwist>("/ee_state_topic", 100);
 	control_points_pub = n.advertise<geometry_msgs::PointStamped>("/control_points_topic", 100);	
 	spatial_error_pub = n.advertise<geometry_msgs::TwistStamped>("/spatial_error_topic", 100);
 	command_stamp_pub = n.advertise<geometry_msgs::TwistStamped>("/vel_command_stamp_topic", 100);

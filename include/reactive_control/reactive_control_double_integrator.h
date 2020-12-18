@@ -5,7 +5,7 @@
 #include <geometry_msgs/AccelStamped.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <visualization_msgs/Marker.h>
-#include <trajectory_execution_msgs/PoseTwist.h>
+#include <cartesian_state_msgs/PoseTwist.h>
 
 #include <tf/transform_datatypes.h>
 #include <numeric>
