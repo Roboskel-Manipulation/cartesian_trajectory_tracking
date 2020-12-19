@@ -13,7 +13,7 @@ float xOffset_limit=0, yOffset_limit=0, zOffset_limit=0;
 ros::Publisher control_points_pub, vis_human_pub, vis_robot_pub;
 
 // Variables used in the trajectory points callback
-bool init_point_flag = true, second_point_flag = true;
+bool init_point_flag = true, second_point_flag = true, check_robot_limits;
 float xOffset, yOffset, zOffset;
 geometry_msgs::PoseStampedPtr robot_pose = boost::make_shared<geometry_msgs::PoseStamped>();
 

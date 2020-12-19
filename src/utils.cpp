@@ -58,35 +58,43 @@ void check_trajectory_point(const geometry_msgs::PointConstPtr candidate_point){
 }
 
 // trajectory points callback
-void trajectory_points_callback(const geometry_msgs::PointStampedConstPtr human_msg){
+void trajectory_points_callback(const geometry_msgs::PointStampedConstPtr trajectory_point){
 	// If it is the first trajectory point, compute the translation offset
 	if (init_point_flag){
-		xOffset = robot_pose->pose.position.x - human_msg->point.x;
-		yOffset = robot_pose->pose.position.y - human_msg->point.y;
-		zOffset = robot_pose->pose.position.z - human_msg->point.z;
+		xOffset = robot_pose->pose.position.x - trajectory_point->point.x;
+		yOffset = robot_pose->pose.position.y - trajectory_point->point.y;
+		zOffset = robot_pose->pose.position.z - trajectory_point->point.z;
 		
-		init_point->x = human_msg->point.x;
-		init_point->y = human_msg->point.y;
-		init_point->z = human_msg->point.z;
+		init_point->x = trajectory_point->point.x;
+		init_point->y = trajectory_point->point.y;
+		init_point->z = trajectory_point->point.z;
 
 		init_point_flag = false;
 	}
 	// Omit the distance between the first and second trajectory points,
 	// because it causes abrupt start of the robot motion
 	else if (second_point_flag){
-		jump_dis->x = human_msg->point.x - init_point->x;
-		jump_dis->y = human_msg->point.y - init_point->y;
-		jump_dis->z = human_msg->point.z - init_point->z;
+		jump_dis->x = trajectory_point->point.x - init_point->x;
+		jump_dis->y = trajectory_point->point.y - init_point->y;
+		jump_dis->z = trajectory_point->point.z - init_point->z;
 
 		second_point_flag = false;
 	}
 	else{
-		candidate_point->x = human_msg->point.x + xOffset - jump_dis->x;
-		candidate_point->y = human_msg->point.y + yOffset - jump_dis->y;
-		candidate_point->z = human_msg->point.z + zOffset - jump_dis->z;
+		candidate_point->x = trajectory_point->point.x + xOffset - jump_dis->x;
+		candidate_point->y = trajectory_point->point.y + yOffset - jump_dis->y;
+		candidate_point->z = trajectory_point->point.z + zOffset - jump_dis->z;
 
 		// Check if the trajectory point is valid and update the desired trajectory point accordingly
-		check_trajectory_point(candidate_point);
+		if (check_robot_limits){
+			check_trajectory_point(candidate_point);
+		}
+		else{
+			desired_robot_position->point.x = candidate_point->x;
+			desired_robot_position->point.y = candidate_point->y;
+			desired_robot_position->point.z = candidate_point->z;
+			control_points_pub.publish(*desired_robot_position);
+		}
 		
 		// Visualize in RViz
 		if (motion_started){
