@@ -10,6 +10,9 @@ Kx: 10
 Ky: 10
 Kz: 10
 
+# Flag to check for robot limits
+check_robot_limits: true
+
 # Self collision limits
 self_collision_limit: 0.23
 z_limit: 0.23

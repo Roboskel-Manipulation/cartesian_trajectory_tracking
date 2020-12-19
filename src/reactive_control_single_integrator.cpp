@@ -4,6 +4,7 @@ extern double euclidean_distance(const geometry_msgs::PointConstPtr candidate_po
 extern void check_trajectory_point(const geometry_msgs::PointConstPtr candidate_point);
 extern void trajectory_points_callback(const geometry_msgs::PointStampedConstPtr human_msg);
 
+
 // Velcocity control callback 
 void ee_state_callback (const cartesian_state_msgs::PoseTwist::ConstPtr state_msg){	
 	// Current robot pose
@@ -91,6 +92,9 @@ int main(int argc, char** argv){
 	n.param("reactive_control_node/Dy", Dy, 0.0f);
 	n.param("reactive_control_node/Dz", Dz, 0.0f);
 
+	// Check robot limits
+	n.param("reactive_control_node/check_robot_limits", check_robot_limits, true);
+
 	// Self collision distances
 	n.param("reactive_control_node/self_collision_limit", self_collision_limit, 0.0f);
 	n.param("reactive_control_node/z_limit", z_limit, 0.0f);
@@ -115,58 +119,10 @@ int main(int argc, char** argv){
 	n.param("reactive_control_node/max_dis", max_dis, 1.0f);	
 	n.param("reactive_control_node/c", c, 1.0f);
 
-	// Simulation flag
-	n.param("reactive_control_node/sim", sim, true);
-
-	// Human marker - Rviz
-	marker_human->header.frame_id = "base_link";
-	marker_human->type = visualization_msgs::Marker::LINE_STRIP;
-	marker_human->action = visualization_msgs::Marker::ADD;
-	marker_human->scale.x = 0.002;
-    marker_human->scale.y = 0.002;
-    marker_human->scale.z = 0.002;
-    marker_human->color.r = 0.0f;
-    marker_human->color.g = 1.0f;
-    marker_human->color.b = 0.0f;
-    marker_human->color.a = 1.0;
-  	marker_human->lifetime = ros::Duration(100);
-	
-	// Robot marker - Rviz
-	marker_robot->header.frame_id = "base_link";
-	marker_robot->header.stamp = ros::Time::now();
-	marker_robot->type = visualization_msgs::Marker::LINE_STRIP;
-	marker_robot->action = visualization_msgs::Marker::ADD;
-	marker_robot->scale.x = 0.0035;
-    marker_robot->scale.y = 0.0035;
-    marker_robot->scale.z = 0.0035;
-    marker_robot->color.r = 0.0f;
-    marker_robot->color.g = 0.0f;
-    marker_robot->color.b = 1.0f;
-    marker_robot->color.a = 1.0;
-  	marker_robot->lifetime = ros::Duration(100);
 
   	// Topic names
   	n.param("reactive_control_node/state_topic", ee_state_topic, std::string("/ur3_cartesian_velocity_controller/ee_state"));
   	n.param("reactive_control_node/command_topic", ee_vel_command_topic, std::string("/ur3_cartesian_velocity_controller/command_cart_vel"));
-
-  	// check if yaml params are correctly set
-  	if (sim){
-  		while ((idx = ee_state_topic.find("sim", pos)) != std::string::npos)
-  			pos = idx + 1;
-  		if (pos == 0){
-  			ROS_ERROR_STREAM("Sim flag set to TRUE but topic names are set to real robot topic names. Check the configuration yaml file");
-  			ros::shutdown();
-  		}
-  	} 
-
-  	if (not sim){
-  		while ((idx = ee_state_topic.find("sim", pos)) != std::string::npos)
-  			pos = idx + 1;
-  		if (pos != 0){
-  			ROS_ERROR_STREAM("Sim flag set to FALSE but topic names are set to simulated robot topic names. Check the configuration yaml file");
-  			ros::shutdown();
-  		}
-  	}
 
   	// Check if both euclidean and exponential flags are set to TRUE
   	if (eucl_flag and exp_flag){
@@ -174,6 +130,35 @@ int main(int argc, char** argv){
   		ros::shutdown();
   	}
   	
+  	// Setup marker for RViz
+
+	// Human marker
+	marker_human->header.frame_id = "base_link";
+	marker_human->type = visualization_msgs::Marker::LINE_STRIP;
+	marker_human->action = visualization_msgs::Marker::ADD;
+	marker_human->scale.x = 0.002;
+	marker_human->scale.y = 0.002;
+	marker_human->scale.z = 0.002;
+	marker_human->color.r = 0.0f;
+	marker_human->color.g = 1.0f;
+	marker_human->color.b = 0.0f;
+	marker_human->color.a = 1.0;
+	marker_human->lifetime = ros::Duration(100);
+
+	// Robot marker
+	marker_robot->header.frame_id = "base_link";
+	marker_robot->header.stamp = ros::Time::now();
+	marker_robot->type = visualization_msgs::Marker::LINE_STRIP;
+	marker_robot->action = visualization_msgs::Marker::ADD;
+	marker_robot->scale.x = 0.0035;
+	marker_robot->scale.y = 0.0035;
+	marker_robot->scale.z = 0.0035;
+	marker_robot->color.r = 0.0f;
+	marker_robot->color.g = 0.0f;
+	marker_robot->color.b = 1.0f;
+	marker_robot->color.a = 1.0;
+	marker_robot->lifetime = ros::Duration(100);
+
 	// Publishers
 	command_pub = n.advertise<geometry_msgs::Twist>(ee_vel_command_topic, 100);
 	robot_state_pub = n.advertise<cartesian_state_msgs::PoseTwist>("/ee_state_topic", 100);

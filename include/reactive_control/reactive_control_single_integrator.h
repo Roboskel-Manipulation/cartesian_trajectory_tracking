@@ -53,6 +53,8 @@ extern float xOffset, yOffset, zOffset;
 
 extern bool motion_started;
 
+extern bool check_robot_limits;
+
 // Topic names
 std::string ee_state_topic, ee_vel_command_topic;
 
@@ -68,8 +70,7 @@ float D_eucl;
 bool exp_flag;
 float Ka, Kb, min_dis, max_dis, Ka_exp, Kb_exp, c, x_error, y_error, z_error;
 
-// Real robot or sim
-bool sim;
-
 // Check sim flag and topic names
 int pos=0, idx;
+
+

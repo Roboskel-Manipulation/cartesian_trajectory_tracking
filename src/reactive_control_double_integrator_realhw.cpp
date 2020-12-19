@@ -81,6 +81,9 @@ int main(int argc, char** argv){
 	n.param("reactive_control_node/Ky", Ky, 0.0f);
 	n.param("reactive_control_node/Kz", Kz, 0.0f);
 
+	// Check robot limits
+	n.param("reactive_control_node/check_robot_limits", check_robot_limits, true);
+	
 	// Self collision distances
 	n.param("reactive_control_node/self_collision_limit", self_collision_limit, 0.0f);
 	n.param("reactive_control_node/z_limit", z_limit, 0.0f);

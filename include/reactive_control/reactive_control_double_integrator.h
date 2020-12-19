@@ -58,3 +58,5 @@ extern bool limit_flag, init_point_flag, second_point_flag;
 extern float xOffset, yOffset, zOffset;
 
 extern bool motion_started;
+
+extern bool check_robot_limits;
