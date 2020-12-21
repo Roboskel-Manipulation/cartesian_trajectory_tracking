@@ -3,6 +3,7 @@
 extern double euclidean_distance(const geometry_msgs::PointConstPtr candidate_point, const geometry_msgs::PointConstPtr last_valid_point);
 extern void check_trajectory_point(const geometry_msgs::PointConstPtr candidate_point);
 extern void trajectory_points_callback(const geometry_msgs::PointStampedConstPtr human_msg);
+extern void halt_motion_callback(const std_msgs::Bool halt_motion_msg);
 
 
 // Velcocity control callback 
@@ -171,6 +172,7 @@ int main(int argc, char** argv){
 	// Subscribers
 	ros::Subscriber ee_state_sub = n.subscribe(ee_state_topic, 100, ee_state_callback);
 	ros::Subscriber trajectory_points_sub = n.subscribe("/trajectory_points", 100, trajectory_points_callback);
+	ros::Subscriber halt_motion_sub = n.subscribe("/check_keypoints_placement_topic", 100, halt_motion_callback);
 	
 	ros::waitForShutdown();
 }

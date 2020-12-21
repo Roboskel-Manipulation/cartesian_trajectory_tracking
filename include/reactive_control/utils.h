@@ -1,8 +1,12 @@
 #include <ros/ros.h>
+#include <std_msgs/Bool.h>
 #include <geometry_msgs/Point.h>
 #include <geometry_msgs/PointStamped.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <visualization_msgs/Marker.h>
+
+// halt motion
+bool halt_motion=false;
 
 // check robot limits variables
 float self_collision_limit, z_limit, overextension_limit, consecutive_points_distance;
