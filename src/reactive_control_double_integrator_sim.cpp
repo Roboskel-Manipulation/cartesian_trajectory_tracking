@@ -1,9 +1,6 @@
 #include "reactive_control/reactive_control_double_integrator_sim.h"
 
-extern double euclidean_distance(const geometry_msgs::PointConstPtr candidate_point, const geometry_msgs::PointConstPtr last_valid_point);
-extern void check_trajectory_point(const geometry_msgs::PointConstPtr candidate_point);
-extern void trajectory_points_callback(const geometry_msgs::PointStampedConstPtr human_msg);
-extern void halt_motion_callback(const std_msgs::Bool halt_motion_msg);
+extern void control_points_callback(const geometry_msgs::PointStampedConstPtr control_point);
 
 // Velcocity control callback 
 void ee_state_callback (const cartesian_state_msgs::PoseTwist::ConstPtr state_msg){
@@ -141,7 +138,6 @@ int main(int argc, char** argv){
 	// Publishers
 	command_pub = n.advertise<geometry_msgs::Twist>(ee_vel_command_topic, 100);
 	robot_state_pub = n.advertise<cartesian_state_msgs::PoseTwist>("/ee_state_topic", 100);
-	control_points_pub = n.advertise<geometry_msgs::PointStamped>("/control_points_topic", 100);	
 	spatial_error_pub = n.advertise<geometry_msgs::TwistStamped>("/spatial_error_topic", 100);
 	command_stamp_pub = n.advertise<geometry_msgs::TwistStamped>("/vel_command_stamp_topic", 100);
 	vis_human_pub = n.advertise<visualization_msgs::Marker>("/vis_human_topic", 100);
@@ -151,8 +147,7 @@ int main(int argc, char** argv){
 	
 	// Subscribers
 	ros::Subscriber ee_state_sub = n.subscribe(ee_state_topic, 100, ee_state_callback);
-	ros::Subscriber trajectory_points_sub = n.subscribe("/trajectory_points", 100, trajectory_points_callback);
-	ros::Subscriber halt_motion_sub = n.subscribe("/check_keypoints_placement_topic", 100, halt_motion_callback);
+	ros::Subscriber control_points_sub = n.subscribe("/control_points_topic", 100, control_points_callback);
 	
 	ros::waitForShutdown();
 }

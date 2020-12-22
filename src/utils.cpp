@@ -1,116 +1,26 @@
 #include <reactive_control/utils.h>
 
 // Euclidean distance calculator
-double euclidean_distance(const geometry_msgs::PointConstPtr candidate_point, const geometry_msgs::PointConstPtr last_valid_point){
-	double dis_x = candidate_point->x - last_valid_point->x;
-	double dis_y = candidate_point->y - last_valid_point->y;
-	double dis_z = candidate_point->z - last_valid_point->z;
+double euclidean_distance(const geometry_msgs::PointConstPtr p1, const geometry_msgs::PointConstPtr p2){
+	double dis_x = p1->x - p2->x;
+	double dis_y = p1->y - p2->y;
+	double dis_z = p1->z - p2->z;
 	return sqrt(pow(dis_x, 2) + pow(dis_y, 2) + pow(dis_z, 2));
 }
 
-// Check if trajectory point is leading to overextension or self collision
-void check_trajectory_point(const geometry_msgs::PointConstPtr candidate_point){
-	// Self-collision checking
-	if (sqrt(pow(candidate_point->x, 2) + pow(candidate_point->y, 2)) < self_collision_limit 
-		and candidate_point->z < z_limit){
-		ROS_WARN_STREAM("Control point leading to self collision. Waiting for valid control point");
-		limit_flag = true;
-	}
-	// Overextension checking
-	else if (sqrt(pow(candidate_point->x, 2) + pow(candidate_point->y, 2) + 
-		pow(candidate_point->z, 2)) > overextension_limit){
-		ROS_WARN_STREAM("Control point leading to overextention Waiting for valid control point");
-		limit_flag = true;
-	}
-	else{
-		if (limit_flag){
-			// If the robot is in overextension or self-collision state
-			// check if the next valid point is at most `consecutive_points_distance`
-			// meters apart from the last valid point
-			if (euclidean_distance(candidate_point, last_valid_point) < consecutive_points_distance){
-				xOffset_limit = candidate_point->x - last_valid_point->x;
-				yOffset_limit = candidate_point->y - last_valid_point->y;
-				zOffset_limit = candidate_point->z - last_valid_point->z;
-				desired_robot_position->point.x = candidate_point->x - xOffset_limit;
-				desired_robot_position->point.y = candidate_point->y - yOffset_limit;
-				desired_robot_position->point.z = candidate_point->z - zOffset_limit;
-				last_valid_point->x = candidate_point->x - xOffset_limit;
-				last_valid_point->y = candidate_point->y - yOffset_limit;
-				last_valid_point->z = candidate_point->z - zOffset_limit;
-				limit_flag = false;
-				control_points_pub.publish(*desired_robot_position);
-			}
-		}
-		// Publish the trajectory point if the robot is not in self-collision / overextension state
-		// and the point does not lead to such a state
-		else{
-			desired_robot_position->point.x = candidate_point->x - xOffset_limit;
-			desired_robot_position->point.y = candidate_point->y - yOffset_limit;
-			desired_robot_position->point.z = candidate_point->z - zOffset_limit;
-			last_valid_point->x = candidate_point->x - xOffset_limit;
-			last_valid_point->y = candidate_point->y - yOffset_limit;
-			last_valid_point->z = candidate_point->z - zOffset_limit;
-			motion_started = true;
-			limit_flag = false;
-			control_points_pub.publish(*desired_robot_position);
-		}
-	}
-}
-
-// halt motion callback
-void halt_motion_callback(const std_msgs::Bool halt_motion_msg){
-	halt_motion = halt_motion_msg.data;
-	std::cout << halt_motion << std::endl;
-}
-
 // trajectory points callback
-void trajectory_points_callback(const geometry_msgs::PointStampedConstPtr trajectory_point){
+void control_points_callback(const geometry_msgs::PointStampedConstPtr control_point){
 
-	if (not halt_motion){
-		// If it is the first trajectory point, compute the translation offset
-		if (init_point_flag){
-			xOffset = robot_pose->pose.position.x - trajectory_point->point.x;
-			yOffset = robot_pose->pose.position.y - trajectory_point->point.y;
-			zOffset = robot_pose->pose.position.z - trajectory_point->point.z;
-			
-			init_point->x = trajectory_point->point.x;
-			init_point->y = trajectory_point->point.y;
-			init_point->z = trajectory_point->point.z;
-
-			init_point_flag = false;
-		}
-		// Omit the distance between the first and second trajectory points,
-		// because it causes abrupt start of the robot motion
-		else if (second_point_flag){
-			jump_dis->x = trajectory_point->point.x - init_point->x;
-			jump_dis->y = trajectory_point->point.y - init_point->y;
-			jump_dis->z = trajectory_point->point.z - init_point->z;
-
-			second_point_flag = false;
-		}
-		else{
-			candidate_point->x = trajectory_point->point.x + xOffset - jump_dis->x;
-			candidate_point->y = trajectory_point->point.y + yOffset - jump_dis->y;
-			candidate_point->z = trajectory_point->point.z + zOffset - jump_dis->z;
-
-			// Check if the trajectory point is valid and update the desired trajectory point accordingly
-			if (check_robot_limits){
-				check_trajectory_point(candidate_point);
-			}
-			else{
-				desired_robot_position->point.x = candidate_point->x;
-				desired_robot_position->point.y = candidate_point->y;
-				desired_robot_position->point.z = candidate_point->z;
-				control_points_pub.publish(*desired_robot_position);
-			}
-			
-			// Visualize in RViz
-			if (motion_started){
-				marker_robot->points.push_back(robot_pose->pose.position);
-				marker_human->points.push_back(desired_robot_position->point);
-				vis_human_pub.publish(*marker_human);
-				vis_robot_pub.publish(*marker_robot);
-			}
-		}
+	desired_robot_position->point.x = control_point->point.x;
+	desired_robot_position->point.y = control_point->point.y;
+	desired_robot_position->point.z = control_point->point.z;
+	motion_started = true;
+	
+	// Visualize in RViz
+	if (motion_started){
+		marker_robot->points.push_back(robot_pose->pose.position);
+		marker_human->points.push_back(desired_robot_position->point);
+		vis_human_pub.publish(*marker_human);
+		vis_robot_pub.publish(*marker_robot);
 	}
 }
