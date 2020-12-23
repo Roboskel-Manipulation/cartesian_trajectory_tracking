@@ -21,9 +21,6 @@ Ka_exp: 30
 Kb_exp: 34
 c: 0
 
-# Flag to check for robot limits
-check_robot_limits: true
-
 # Self collision distance
 self_collision_limit: 0.23
 z_limit: 0.23
@@ -31,5 +28,3 @@ z_limit: 0.23
 # Extention distance
 overextension_limit: 0.56 #0.56-0.03
 
-# Consecutive control points distance
-consecutive_points_distance: 0.08
