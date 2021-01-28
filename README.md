@@ -1,11 +1,13 @@
 # A ROS package for real-time cartesian trajectory replication of a robotic manipulator (UR3 Cobot)
 
-<b>Overall Functionality</b>: This repo provides the utility for real-time cartesian trajectory replication by a robotic manipulator. Currently, only the position of the end effector can be controlled.
+## Overall Functionality
+This repo provides the utility for real-time cartesian trajectory replication by a robotic manipulator. Currently, only the position of the end effector can be controlled.
 
-<b> Input </b>
+## Input 
 The input consists of `geometry_msgs/PointStamped` which correspond the the <em> trajectory points </em>.
 
-<b> Robot Motion Generation </b>: The robot accepts the <em> trajectory points </em> and first checks if they lead it to self collision or overextension. If that is not the case, then they are considered valid and are referred to as <em> control points </em>.
+## Robot Motion Generation
+The robot accepts the <em> trajectory points </em> and first checks if they lead it to self collision or overextension. If that is not the case, then they are considered valid and are referred to as <em> control points </em>.
 
 The generation of the robot motion is based on this [Cartesian Velocity Controller](https://github.com/ThanasisTs/manos_control)(CVC), which accepts cartesian velocity commands. The generation of the commands is based on two frameworks. 
 
@@ -15,16 +17,12 @@ The generation of the robot motion is based on this [Cartesian Velocity Controll
 
 Once the end effector's commanded velocities have been computed, they are sent to the CVC, which maps them to joint velocities using IK.
  
-<b> Dependencies </b>
-
+## Dependencies 
 This repo depends on:
 * End effector state msgs [here](https://github.com/ThanasisTs/trajectory_execution_pkg/tree/master/trajectory_execution_msgs).
 
-<b> Run </b>
+## Run 
+* In a terminal run `roslaunch reactive_control reactive_control.launch`
 
-In a terminal run
-`roslaunch reactive_control reactive_control.launch <arg>`
-
-<b> Arguments </b>
-* single_integrator: true if single integrator model is used (false for double)
-* gazebo (?)
+* Arguments
+   * single_integrator: true if single integrator model is used (false for double)
