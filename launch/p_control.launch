@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<launch>
+	<node name="cartesian_trajectory_tracking" type="p_control" pkg="cartesian_trajectory_tracking" respawn="false" output="log">
+		<rosparam file="$(find cartesian_trajectory_tracking)/config/p_control.yaml"/>
+	</node>
+</launch>

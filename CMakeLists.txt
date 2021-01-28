@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(reactive_control)
+project(cartesian_trajectory_tracking)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 add_compile_options(-std=c++17)
@@ -21,7 +21,7 @@ catkin_package(
 	INCLUDE_DIRS 
 		${THIS_PACKAGE_INCLUDE_DIRS}
  		include
-# 	LIBRARIES reactive_control
+# 	LIBRARIES cartesian_trajectory_tracking
  	CATKIN_DEPENDS cartesian_state_msgs visualization_msgs geometry_msgs
 # 	DEPENDS system_lib
 )
@@ -32,13 +32,13 @@ include_directories(
 )
 
 
-add_executable (reactive_control_single_integrator src/reactive_control_single_integrator.cpp src/utils.cpp)
-target_link_libraries (reactive_control_single_integrator ${catkin_LIBRARIES})
+add_executable (p_control src/p_control.cpp src/utils.cpp)
+target_link_libraries (p_control ${catkin_LIBRARIES})
 
-add_executable (reactive_control_double_integrator_sim src/reactive_control_double_integrator_sim.cpp src/utils.cpp)
-target_link_libraries (reactive_control_double_integrator_sim ${catkin_LIBRARIES})
+add_executable (pd_control_sim src/pd_control_sim.cpp src/utils.cpp)
+target_link_libraries (pd_control_sim ${catkin_LIBRARIES})
 
-add_executable (reactive_control_double_integrator_realhw src/reactive_control_double_integrator_realhw.cpp src/utils.cpp)
-target_link_libraries (reactive_control_double_integrator_realhw ${catkin_LIBRARIES})
+add_executable (pd_control src/pd_control.cpp src/utils.cpp)
+target_link_libraries (pd_control ${catkin_LIBRARIES})
 
 

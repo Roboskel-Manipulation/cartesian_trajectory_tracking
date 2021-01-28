@@ -1,4 +1,4 @@
-#include "reactive_control/reactive_control_single_integrator.h"
+#include "cartesian_trajectory_tracking/p_control.h"
 
 extern double euclidean_distance(const geometry_msgs::PointConstPtr p1, const geometry_msgs::PointConstPtr p2);
 extern void control_points_callback(const geometry_msgs::PointStampedConstPtr control_point);
@@ -81,47 +81,47 @@ void ee_state_callback (const cartesian_state_msgs::PoseTwist::ConstPtr state_ms
 }
 
 int main(int argc, char** argv){
-	ros::init(argc, argv, "reactive_control_node");
+	ros::init(argc, argv, "cartesian_trajectory_tracking");
 	ros::NodeHandle n;
 	ros::AsyncSpinner spinner(3);
 	spinner.start();
 
 	// Control gains
-	n.param("reactive_control_node/Dx", Dx, 0.0f);
-	n.param("reactive_control_node/Dy", Dy, 0.0f);
-	n.param("reactive_control_node/Dz", Dz, 0.0f);
+	n.param("cartesian_trajectory_tracking/Dx", Dx, 0.0f);
+	n.param("cartesian_trajectory_tracking/Dy", Dy, 0.0f);
+	n.param("cartesian_trajectory_tracking/Dz", Dz, 0.0f);
 
 	// Check robot limits
-	n.param("reactive_control_node/check_robot_limits", check_robot_limits, true);
+	n.param("cartesian_trajectory_tracking/check_robot_limits", check_robot_limits, true);
 
 	// Self collision distances
-	n.param("reactive_control_node/self_collision_limit", self_collision_limit, 0.0f);
-	n.param("reactive_control_node/z_limit", z_limit, 0.0f);
+	n.param("cartesian_trajectory_tracking/self_collision_limit", self_collision_limit, 0.0f);
+	n.param("cartesian_trajectory_tracking/z_limit", z_limit, 0.0f);
 
 	// Extention distance
-	n.param("reactive_control_node/overextension_limit", overextension_limit, 0.0f);
+	n.param("cartesian_trajectory_tracking/overextension_limit", overextension_limit, 0.0f);
 
 	// Distance between consecutive valid points
-	n.param("reactive_control_node/consecutive_points_distance", consecutive_points_distance, 0.0f);
+	n.param("cartesian_trajectory_tracking/consecutive_points_distance", consecutive_points_distance, 0.0f);
 
 	// Gain flags
-	n.param("reactive_control_node/eucl_flag", eucl_flag, false);
-	n.param("reactive_control_node/D_eucl", D_eucl, 10.0f);
+	n.param("cartesian_trajectory_tracking/eucl_flag", eucl_flag, false);
+	n.param("cartesian_trajectory_tracking/D_eucl", D_eucl, 10.0f);
 	
 	// Exponential dynamical field
-	n.param("reactive_control_node/exp_flag", exp_flag, false);	
-	n.param("reactive_control_node/Ka", Ka, 1.0f);	
-	n.param("reactive_control_node/Kb", Kb, 1.0f);	
-	n.param("reactive_control_node/Ka_exp", Ka_exp, 1.0f);	
-	n.param("reactive_control_node/Kb_exp", Kb_exp, 1.0f);	
-	n.param("reactive_control_node/min_dis", min_dis, 1.0f);	
-	n.param("reactive_control_node/max_dis", max_dis, 1.0f);	
-	n.param("reactive_control_node/c", c, 1.0f);
+	n.param("cartesian_trajectory_tracking/exp_flag", exp_flag, false);	
+	n.param("cartesian_trajectory_tracking/Ka", Ka, 1.0f);	
+	n.param("cartesian_trajectory_tracking/Kb", Kb, 1.0f);	
+	n.param("cartesian_trajectory_tracking/Ka_exp", Ka_exp, 1.0f);	
+	n.param("cartesian_trajectory_tracking/Kb_exp", Kb_exp, 1.0f);	
+	n.param("cartesian_trajectory_tracking/min_dis", min_dis, 1.0f);	
+	n.param("cartesian_trajectory_tracking/max_dis", max_dis, 1.0f);	
+	n.param("cartesian_trajectory_tracking/c", c, 1.0f);
 
 
   	// Topic names
-  	n.param("reactive_control_node/state_topic", ee_state_topic, std::string("/ur3_cartesian_velocity_controller/ee_state"));
-  	n.param("reactive_control_node/command_topic", ee_vel_command_topic, std::string("/ur3_cartesian_velocity_controller/command_cart_vel"));
+  	n.param("cartesian_trajectory_tracking/state_topic", ee_state_topic, std::string("/ur3_cartesian_velocity_controller/ee_state"));
+  	n.param("cartesian_trajectory_tracking/command_topic", ee_vel_command_topic, std::string("/ur3_cartesian_velocity_controller/command_cart_vel"));
 
   	// Check if both euclidean and exponential flags are set to TRUE
   	if (eucl_flag and exp_flag){

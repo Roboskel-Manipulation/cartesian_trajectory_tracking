@@ -1,4 +1,4 @@
-#include "reactive_control/reactive_control_double_integrator_sim.h"
+#include "cartesian_trajectory_tracking/pd_control_sim.h"
 
 extern void control_points_callback(const geometry_msgs::PointStampedConstPtr control_point);
 
@@ -74,34 +74,34 @@ void ee_state_callback (const cartesian_state_msgs::PoseTwist::ConstPtr state_ms
 
 
 int main(int argc, char** argv){
-	ros::init(argc, argv, "reactive_control_node");
+	ros::init(argc, argv, "cartesian_trajectory_tracking");
 	ros::NodeHandle n;
 	ros::AsyncSpinner spinner(3);
 	spinner.start();
 
 	// Control gains
-	n.param("reactive_control_node/Dx", Dx, 0.0f);
-	n.param("reactive_control_node/Dy", Dy, 0.0f);
-	n.param("reactive_control_node/Dz", Dz, 0.0f);
-	n.param("reactive_control_node/Kx", Kx, 0.0f);
-	n.param("reactive_control_node/Ky", Ky, 0.0f);
-	n.param("reactive_control_node/Kz", Kz, 0.0f);
+	n.param("cartesian_trajectory_tracking/Dx", Dx, 0.0f);
+	n.param("cartesian_trajectory_tracking/Dy", Dy, 0.0f);
+	n.param("cartesian_trajectory_tracking/Dz", Dz, 0.0f);
+	n.param("cartesian_trajectory_tracking/Kx", Kx, 0.0f);
+	n.param("cartesian_trajectory_tracking/Ky", Ky, 0.0f);
+	n.param("cartesian_trajectory_tracking/Kz", Kz, 0.0f);
 
 	// Check robot limits
-	n.param("reactive_control_node/check_robot_limits", check_robot_limits, true);
+	n.param("cartesian_trajectory_tracking/check_robot_limits", check_robot_limits, true);
 	
 	// Self collision distances
-	n.param("reactive_control_node/self_collision_limit", self_collision_limit, 0.0f);
-	n.param("reactive_control_node/z_limit", z_limit, 0.0f);
+	n.param("cartesian_trajectory_tracking/self_collision_limit", self_collision_limit, 0.0f);
+	n.param("cartesian_trajectory_tracking/z_limit", z_limit, 0.0f);
 
 	// Extention distance
-	n.param("reactive_control_node/overextension_limit", overextension_limit, 0.0f);
+	n.param("cartesian_trajectory_tracking/overextension_limit", overextension_limit, 0.0f);
 
 	// Distance between consecutive valid points
-	n.param("reactive_control_node/consecutive_points_distance", consecutive_points_distance, 0.0f);
+	n.param("cartesian_trajectory_tracking/consecutive_points_distance", consecutive_points_distance, 0.0f);
 
 	// Rotation angle
-	// n.param("reactive_control_node/theta", theta, 0.0f);
+	// n.param("cartesian_trajectory_tracking/theta", theta, 0.0f);
 	// theta = theta * M_PI / 180;
 	
 	// Human marker - Rviz
@@ -132,8 +132,8 @@ int main(int argc, char** argv){
   	marker_robot->lifetime = ros::Duration(100);
   	
   	// Topic names
-  	n.param("reactive_control_node/state_topic", ee_state_topic, std::string("/ur3_cartesian_velocity_controller_sim/ee_state"));
-  	n.param("reactive_control_node/command_topic", ee_vel_command_topic, std::string("/ur3_cartesian_velocity_controller_sim/command_cart_vel"));
+  	n.param("cartesian_trajectory_tracking/state_topic", ee_state_topic, std::string("/ur3_cartesian_velocity_controller_sim/ee_state"));
+  	n.param("cartesian_trajectory_tracking/command_topic", ee_vel_command_topic, std::string("/ur3_cartesian_velocity_controller_sim/command_cart_vel"));
 
 	// Publishers
 	command_pub = n.advertise<geometry_msgs::Twist>(ee_vel_command_topic, 100);

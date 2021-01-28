@@ -1,4 +1,4 @@
-#include <reactive_control/reactive_control_double_integrator.h>
+#include <cartesian_trajectory_tracking/pd_control.h>
 
 ros::Publisher real_robot_vel_pub;
 

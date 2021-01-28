@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<launch>
+
+	<arg name="p_control" default="true"/>
+	<arg name="gazebo" default="true"/>
+	
+	<!-- Single Integrator -->
+	<group if="$(arg p_control)">
+		<include file="$(find cartesian_trajectory_tracking)/p_control.launch">
+		</include>
+	</group>
+
+	<!-- Double Integrator -->
+	<group unless="$(arg p_control)">
+		<include file="$(find cartesian_trajectory_tracking)/launch/pd_control.launch">
+			<arg name="gazebo" default="$(arg gazebo)"/>
+		</include>
+	</group>
+</launch>

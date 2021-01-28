@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>reactive_control</name>
+  <name>cartesian_trajectory_tracking</name>
   <version>0.0.0</version>
-  <description>The reactive_control package</description>
+  <description>The cartesian_trajectory_tracking package</description>
 
   <maintainer email="thtsitos@gmail.com">Thanasis Tsitos</maintainer>
 
