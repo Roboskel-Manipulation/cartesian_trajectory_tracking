@@ -26,3 +26,4 @@ This repo depends on:
 
 * Arguments
    * p_control: true if P Controller is used (false for PD)
+   * gazebo: true if running Gazebo
