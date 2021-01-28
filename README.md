@@ -1,28 +1,28 @@
-# A ROS package for real-time cartesian trajectory replication of a robotic manipulator (UR3 Cobot)
+# A ROS package for real-time cartesian trajectory tracking by a robotic manipulator (UR3 Cobot)
 
 ## Overall Functionality
-This repo provides the utility for real-time cartesian trajectory replication by a robotic manipulator. Currently, only the position of the end effector can be controlled.
+This repo provides the utility for real-time cartesian trajectory tracking by a robotic manipulator. Currently, only the position of the end effector can be controlled.
 
 ## Input 
-The input consists of `geometry_msgs/PointStamped` which correspond the the <em> trajectory points </em>.
+The input consists of `geometry_msgs/PointStamped` which correspond to the <em> trajectory points </em>.
 
 ## Robot Motion Generation
-The robot accepts the <em> trajectory points </em> and first checks if they lead it to self collision or overextension. If that is not the case, then they are considered valid and are referred to as <em> control points </em>.
+The robot accepts <em> trajectory points </em> one at a time and first checks if they lead it to self collision or overextension. If that is not the case, then they are considered valid and are referred to as <em> control points </em>.
 
 The generation of the robot motion is based on this [Cartesian Velocity Controller](https://github.com/ThanasisTs/manos_control)(CVC), which accepts cartesian velocity commands. The generation of the commands is based on two frameworks. 
 
-* Single Integrator: The single integrator model generates velocities based on the spatial error between the control points and the end effector's current position. The state of the end effector consists of its pose.
+* P Controller: The P controller generates velocities based on the spatial error between the control points and the end effector's current position.
 
-* Double Integrator: The double integrator model generates velocities based on computed acceleration. The acceleration is constructed by the spatial error between the control points and the end effector's current position, and the end effector's current velocity. The state of the end effector consists of its pose and its twist.
+* PD Controller: The PD controller generates velocities based on computed acceleration. The acceleration is constructed by the spatial error between the control points and the end effector's current position, and the end effector's current velocity.
 
-Once the end effector's commanded velocities have been computed, they are sent to the CVC, which maps them to joint velocities using IK.
+Once the end effector's commanded velocities have been computed, they are sent to the CVC.
  
 ## Dependencies 
 This repo depends on:
-* End effector state msgs [here](https://github.com/ThanasisTs/trajectory_execution_pkg/tree/master/trajectory_execution_msgs).
+* End effector state msgs [here](https://github.com/Roboskel_Manipulation/trajectory_execution_pkg/tree/master/trajectory_execution_msgs).
 
 ## Run 
-* In a terminal run `roslaunch reactive_control reactive_control.launch`
+* In a terminal run `roslaunch cartesian_trajectory_tracking cartesian_trajectory_tracking.launch`
 
 * Arguments
-   * single_integrator: true if single integrator model is used (false for double)
+   * p_control: true if P Controller is used (false for PD)
