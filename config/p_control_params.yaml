@@ -3,9 +3,9 @@ state_topic: "/ur3_cartesian_velocity_controller/ee_state"
 command_topic: "/ur3_cartesian_velocity_controller/command_cart_vel"
 
 # Static gain
-Dx: 5
-Dy: 5
-Dz: 5
+Kx: 5
+Ky: 5
+Kz: 5
 
 # Euclidean distance gain
 eucl_flag: false
@@ -20,11 +20,4 @@ max_dis: 0.2
 Ka_exp: 30
 Kb_exp: 34
 c: 0
-
-# Self collision distance
-self_collision_limit: 0.23
-z_limit: 0.23
-
-# Extention distance
-overextension_limit: 0.56 #0.56-0.03
 

@@ -53,11 +53,9 @@ extern geometry_msgs::PointStampedPtr desired_robot_position;
 extern visualization_msgs::MarkerPtr marker_human;
 extern visualization_msgs::MarkerPtr marker_robot;
 
-extern float self_collision_limit, z_limit, overextension_limit, consecutive_points_distance;
 extern bool limit_flag, init_point_flag, second_point_flag;
 
 extern float xOffset, yOffset, zOffset;
 
 extern bool motion_started;
 
-extern bool check_robot_limits;

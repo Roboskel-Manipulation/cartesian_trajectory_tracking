@@ -1,3 +1,7 @@
+// PD Controller for Real robot
+// Uses the end effector velocity provided by the cartesian velocity controller
+
+
 #include "cartesian_trajectory_tracking/pd_control.h"
 
 extern void control_points_callback(const geometry_msgs::PointStampedConstPtr control_point);
@@ -23,9 +27,9 @@ void ee_state_callback (const cartesian_state_msgs::PoseTwist::ConstPtr state_ms
 		spatial_error_pub.publish(*spatial_error);
 
 		// Commanded acceleration
-		acc->accel.linear.x = -Kx*state_msg->twist.linear.x + Dx*spatial_error->twist.linear.x;
-		acc->accel.linear.y = -Ky*state_msg->twist.linear.y + Dy*spatial_error->twist.linear.y;
-		acc->accel.linear.z = -Kz*state_msg->twist.linear.z + Dz*spatial_error->twist.linear.z;
+		acc->accel.linear.x = -Dx*state_msg->twist.linear.x + Kx*spatial_error->twist.linear.x;
+		acc->accel.linear.y = -Dy*state_msg->twist.linear.y + Ky*spatial_error->twist.linear.y;
+		acc->accel.linear.z = -Dz*state_msg->twist.linear.z + Kz*spatial_error->twist.linear.z;
 		
 		// Commanded velocity
 		vel_control->linear.x += acc->accel.linear.x*control_cycle_duration;
@@ -77,23 +81,6 @@ int main(int argc, char** argv){
 	n.param("cartesian_trajectory_tracking/Ky", Ky, 0.0f);
 	n.param("cartesian_trajectory_tracking/Kz", Kz, 0.0f);
 
-	// Check robot limits
-	n.param("cartesian_trajectory_tracking/check_robot_limits", check_robot_limits, true);
-	
-	// Self collision distances
-	n.param("cartesian_trajectory_tracking/self_collision_limit", self_collision_limit, 0.0f);
-	n.param("cartesian_trajectory_tracking/z_limit", z_limit, 0.0f);
-
-	// Extention distance
-	n.param("cartesian_trajectory_tracking/overextension_limit", overextension_limit, 0.0f);
-
-	// Distance between consecutive valid points
-	n.param("cartesian_trajectory_tracking/consecutive_points_distance", consecutive_points_distance, 0.0f);
-
-	// Rotation angle
-	// n.param("cartesian_trajectory_tracking/theta", theta, 0.0f);
-	// theta = theta * M_PI / 180;
-	
 	// Human marker - Rviz
 	marker_human->header.frame_id = "base_link";
 	marker_human->type = visualization_msgs::Marker::LINE_STRIP;

@@ -1,3 +1,5 @@
+// P Controller for both real robot and Gazebo
+
 #include "cartesian_trajectory_tracking/p_control.h"
 
 extern double euclidean_distance(const geometry_msgs::PointConstPtr p1, const geometry_msgs::PointConstPtr p2);
@@ -33,7 +35,7 @@ void ee_state_callback (const cartesian_state_msgs::PoseTwist::ConstPtr state_ms
 
 			dis_points = euclidean_distance(current_position, desired_position);
 			
-			Dx = Dy = Dz = D_eucl*dis_points;
+			Kx = Ky = Kz = K_eucl*dis_points;
 		}
 		// Construct gains based on exponential potential
 		// Intuitively, increase the gain as long as the distance decreases
@@ -42,15 +44,15 @@ void ee_state_callback (const cartesian_state_msgs::PoseTwist::ConstPtr state_ms
 			y_error = abs(spatial_error->twist.linear.y);
 			z_error = abs(spatial_error->twist.linear.z);
 			
-			Dx = Ka/(1+exp(Ka_exp*(x_error-min_dis)))+Kb/(1+exp(-Kb_exp*(x_error-max_dis)))+c;
-			Dy = Ka/(1+exp(Ka_exp*(y_error-min_dis)))+Kb/(1+exp(-Kb_exp*(y_error-max_dis)))+c;
-			Dz = Ka/(1+exp(Ka_exp*(z_error-min_dis)))+Kb/(1+exp(-Kb_exp*(z_error-max_dis)))+c;
+			Kx = Ka/(1+exp(Ka_exp*(x_error-min_dis)))+Kb/(1+exp(-Kb_exp*(x_error-max_dis)))+c;
+			Ky = Ka/(1+exp(Ka_exp*(y_error-min_dis)))+Kb/(1+exp(-Kb_exp*(y_error-max_dis)))+c;
+			Kz = Ka/(1+exp(Ka_exp*(z_error-min_dis)))+Kb/(1+exp(-Kb_exp*(z_error-max_dis)))+c;
 		}
 
 		// Commanded velocity
-		vel_control->linear.x = Dx*spatial_error->twist.linear.x;
-		vel_control->linear.y = Dy*spatial_error->twist.linear.y;
-		vel_control->linear.z = Dz*spatial_error->twist.linear.z;
+		vel_control->linear.x = Kx*spatial_error->twist.linear.x;
+		vel_control->linear.y = Ky*spatial_error->twist.linear.y;
+		vel_control->linear.z = Kz*spatial_error->twist.linear.z;
 
 		// Commanded velocity with time info for debugging purposes
 		vel_control_stamp->twist.linear.x = vel_control->linear.x;
@@ -87,28 +89,15 @@ int main(int argc, char** argv){
 	spinner.start();
 
 	// Control gains
-	n.param("cartesian_trajectory_tracking/Dx", Dx, 0.0f);
-	n.param("cartesian_trajectory_tracking/Dy", Dy, 0.0f);
-	n.param("cartesian_trajectory_tracking/Dz", Dz, 0.0f);
-
-	// Check robot limits
-	n.param("cartesian_trajectory_tracking/check_robot_limits", check_robot_limits, true);
-
-	// Self collision distances
-	n.param("cartesian_trajectory_tracking/self_collision_limit", self_collision_limit, 0.0f);
-	n.param("cartesian_trajectory_tracking/z_limit", z_limit, 0.0f);
-
-	// Extention distance
-	n.param("cartesian_trajectory_tracking/overextension_limit", overextension_limit, 0.0f);
-
-	// Distance between consecutive valid points
-	n.param("cartesian_trajectory_tracking/consecutive_points_distance", consecutive_points_distance, 0.0f);
+	n.param("cartesian_trajectory_tracking/Kx", Kx, 0.0f);
+	n.param("cartesian_trajectory_tracking/Ky", Ky, 0.0f);
+	n.param("cartesian_trajectory_tracking/Kz", Kz, 0.0f);
 
 	// Gain flags
 	n.param("cartesian_trajectory_tracking/eucl_flag", eucl_flag, false);
-	n.param("cartesian_trajectory_tracking/D_eucl", D_eucl, 10.0f);
+	n.param("cartesian_trajectory_tracking/K_eucl", K_eucl, 10.0f);
 	
-	// Exponential dynamical field
+	// Exponential Kynamical field
 	n.param("cartesian_trajectory_tracking/exp_flag", exp_flag, false);	
 	n.param("cartesian_trajectory_tracking/Ka", Ka, 1.0f);	
 	n.param("cartesian_trajectory_tracking/Kb", Kb, 1.0f);	
