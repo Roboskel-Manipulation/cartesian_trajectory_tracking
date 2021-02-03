@@ -4,13 +4,13 @@
 
 	<group if="$(arg gazebo)">
 		<node name="cartesian_trajectory_tracking" type="pd_control_sim" pkg="cartesian_trajectory_tracking" respawn="false" output="log">
-			<rosparam file="$(find cartesian_trajectory_tracking)/config/pd_control.yaml"/>
+			<rosparam file="$(find cartesian_trajectory_tracking)/config/pd_control_params.yaml" command="load"/>
 		</node>
 	</group>
 
 	<group unless="$(arg gazebo)">
 		<node name="cartesian_trajectory_tracking" type="pd_control" pkg="cartesian_trajectory_tracking" respawn="false" output="screen">
-			<rosparam file="$(find cartesian_trajectory_tracking)/config/pd_control.yaml"/>
+			<rosparam file="$(find cartesian_trajectory_tracking)/config/pd_control_params.yaml" command="load"/>
 		</node>
 	</group>
 

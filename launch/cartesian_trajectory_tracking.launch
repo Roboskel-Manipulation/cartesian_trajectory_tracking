@@ -6,7 +6,7 @@
 	
 	<!-- Single Integrator -->
 	<group if="$(arg p_control)">
-		<include file="$(find cartesian_trajectory_tracking)/p_control.launch">
+		<include file="$(find cartesian_trajectory_tracking)/launch/p_control.launch">
 		</include>
 	</group>
 
